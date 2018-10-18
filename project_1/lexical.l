@@ -9,12 +9,13 @@
 
 %option yylineno
 
+Ws [ \t]+
 Digit [0-9]
 DigitSequence {Digit}+
 Sign [+-]
 NonzeroDigit [1-9]
 Letter [a-zA-zA]
-DecimalInteger 0|({NonzeroDigit}{Digit}+)
+DecimalInteger 0|({NonzeroDigit}{Digit}*)
 OctalDigit [0-7]
 OctalInteger 0({OctalDigit}+)
 OctalInteger_Error 0[0-9A-WYZa-wyz][0-9A-Za-z]*
@@ -27,9 +28,84 @@ ExponentPart [eE]{Sign}?{DigitSequence}
 FractionalConstant ({DigitSequence}?\.{DigitSequence})|({DigitSequence}\.)
 DecimalFloatingConstant ({FractionalConstant}{ExponentPart}?)|({DigitSequence}{ExponentPart})
 FloatingConstantLike [0-9][0-9a-zA-F+-\.]*
+Relop >|<|>=|<=|==|!=
+Type int|float
+Identifier ({Letter}|_)({Letter}|{Digit}|_)*
 LineFeed \n
 %%
-                  
+{Ws} {/*tabs and whitespaces*/}     
+";" {
+        
+    } 
+"," {
+
+    }   
+"=" {
+
+    }      
+{Relop} {
+
+        }
+"+" {
+
+    }
+"-" {
+
+    }
+"*" {
+
+    } 
+"/" {
+
+    }   
+"&&"    {
+
+        }
+"||"    {
+
+        }
+"." {
+
+    }
+"!" {
+
+    }
+{Type}  {
+
+        }
+"(" {
+
+    }
+")" {
+
+    }
+"[" {
+
+    }
+"]" {
+
+    }
+"{" {
+
+    }    
+"}" {
+
+    }
+"struct"    {
+
+            }
+"return"    {
+
+            }   
+"if"    {
+
+        }
+"else"  {
+
+        }   
+"while" {
+
+        }               
 {UnsignedIntegerConstant}   {
                                 printf("INT\n");
                             }
@@ -44,6 +120,9 @@ LineFeed \n
                             printf("Error type A at line %d: Illegal float point number \'%s\'\n", yylineno, yytext); 
                             // errorLexFlag = 1;
                         }
+{Identifier}    {
+                    printf("ID\n");
+                }
 {LineFeed}  {
 
             }
