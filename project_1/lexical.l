@@ -9,21 +9,41 @@
 
 %option yylineno
 
-DecimalDigit [0-9]
+Digit [0-9]
+DigitSequence {Digit}+
+Sign [+-]
 NonzeroDigit [1-9]
 Letter [a-zA-zA]
-DecimalInteger 0|({NonzeroDigit}{DecimalDigit}+)
+DecimalInteger 0|({NonzeroDigit}{Digit}+)
 OctalDigit [0-7]
 OctalInteger 0({OctalDigit}+)
+OctalInteger_Error 0[0-9A-WYZa-wyz][0-9A-Za-z]*
 HexDigit [0-9a-fA-F]
 HexInteger 0[xX]({HexDigit}+)
-Int ({DecimalInteger})|({OctalInteger})|({HexInteger})
+HexInteger_Error [0][xX][0-9A-Za-z]*
+UnsignedIntegerConstant {DecimalInteger}|{OctalInteger}|{HexInteger}
+UnsignedIntegerConstantLike [0-9][0-9a-zA-F]*
+ExponentPart [eE]{Sign}?{DigitSequence}
+FractionalConstant ({DigitSequence}?\.{DigitSequence})|({DigitSequence}\.)
+DecimalFloatingConstant ({FractionalConstant}{ExponentPart}?)|({DigitSequence}{ExponentPart})
+FloatingConstantLike [0-9][0-9a-zA-F+-\.]*
 LineFeed \n
 %%
-{Int}   {
-            printf("INT\n");
-        }
-
+                  
+{UnsignedIntegerConstant}   {
+                                printf("INT\n");
+                            }
+{DecimalFloatingConstant}   {
+                                printf("FLOAT\n");
+                            }
+{UnsignedIntegerConstantLike}   { 
+                                    printf("Error type A at line %d: Illegal integer \'%s\'\n", yylineno, yytext); 
+                                    // errorLexFlag = 1;
+                                } 
+{FloatingConstantLike}  { 
+                            printf("Error type A at line %d: Illegal float point number \'%s\'\n", yylineno, yytext); 
+                            // errorLexFlag = 1;
+                        }
 {LineFeed}  {
 
             }
