@@ -1,10 +1,19 @@
 %{
-    #include <stdio.h>
-	#include <stdlib.h>
+    #include "parseCommon.h"
+    #include "syntax.tab.h"
 
-    int chars = 0;
-    int words = 0;
-    int lines = 0;
+    int yycolumn = 1;
+	/* define YY_USER_ACTION */
+	#define YY_USER_ACTION \
+		yylloc.first_line = yylloc.last_line = yylineno; \
+		yylloc.first_column = yycolumn; \
+		yylloc.last_column = yycolumn + yyleng - 1; \
+		yycolumn += yyleng;
+    
+    extern "C"
+    {
+        int yylex(void);
+    }
 %}
 
 %option yylineno
@@ -124,7 +133,7 @@ LineFeed \n
                     printf("ID\n");
                 }
 {LineFeed}  {
-
+                yycolumn = 1;
             }
 .   {
         printf("Error type A at Line %d:  Mysterious characters \'%s\'\n", yylineno, yytext);

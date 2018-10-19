@@ -1,6 +1,6 @@
 #include "SyntaxTree.h"
 
-Node::Node(NodeType nodeType, NodeName nodeName, int lineno)
+Node::Node(NodeType nodeType, string nodeName, int lineno)
 {
     this->nodeType = nodeType;
     this->nodeName = nodeName;

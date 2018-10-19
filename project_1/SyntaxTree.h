@@ -3,17 +3,17 @@
 
 #include <iostream>
 #include <list>
+#include <string>
 using namespace std;
 
 extern int yylineno;
 enum NodeType{TERMINAL, NON_TERMINAL};
-enum NodeName{EXP, TYPE, ID};
 class Node 
 {
 private:
 
     NodeType nodeType;
-    NodeName nodeName;
+    string nodeName;
     int lineno;
     /*attribute value of numbers*/
     union   
@@ -27,7 +27,7 @@ private:
     void setFather(Node *node);
 public:
 
-    Node(NodeType nodeType, NodeName nodeName, int lineno);
+    Node(NodeType nodeType, string nodeName, int lineno);
     void setValue(int value);
     void setValue(float value);
     int getIntValue();
@@ -35,5 +35,7 @@ public:
     void addChild(Node *node);
     Node* getFather();
     static void deleteTree(Node *root);
+    static void printTree(Node *root);
 };
+
 #endif

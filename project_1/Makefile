@@ -6,7 +6,8 @@ CFLAGS = -std=c99
 
 # 编译目标：src目录下的所有.c文件
 CFILES = $(shell find ./ -name "*.c")
-OBJS = $(CFILES:.c=.o)
+CPPFILES = $(shell find ./ -name "*.cpp")
+OBJS = $(CFILES:.c=.o) $(CPPFILES:.cpp=.o)
 LFILE = $(shell find ./ -name "*.l")
 YFILE = $(shell find ./ -name "*.y")
 LFC = $(shell find ./ -name "*.l" | sed s/[^/]*\\.l/lex.yy.c/)
@@ -14,8 +15,8 @@ YFC = $(shell find ./ -name "*.y" | sed s/[^/]*\\.y/syntax.tab.c/)
 LFO = $(LFC:.c=.o)
 YFO = $(YFC:.c=.o)
 
-parser: syntax $(filter-out $(LFO),$(OBJS))
-	$(CC) -o parser $(filter-out $(LFO),$(OBJS)) -lfl -ly
+parser: syntax $(CFILES)
+	$(CC) $(CPPFILES) $(CFILES) -lfl -ly -o parser
 
 syntax: lexical syntax-c
 	$(CC) -c $(YFC) -o $(YFO)
@@ -38,5 +39,6 @@ clean:
 	rm -f $(LFC) $(YFC) $(YFC:.c=.h)
 	rm -f *~
 tmp:
+	$(BISON) -d syntax.y
 	$(FLEX) lexical.l
-	$(CC) main.c lex.yy.c SyntaxTree.cpp -lfl -o scanner
+	$(CC) main.cpp syntax.tab.c SyntaxTree.cpp lex.yy.c -lfl -ly -o parser
