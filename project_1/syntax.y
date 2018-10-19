@@ -5,11 +5,6 @@
 		fprintf(stderr, "error: %s\n", s);
 	}
 
-
-	extern "C"
-	{
-		int yylex(void);
-	}
 %}
 
 /* declared types */
@@ -406,12 +401,3 @@ Args	: Exp COMMA Args{
 		;
 
 %%
-
-void yyerror(char* msg)
-{
-
-	if(lexErrorFlag == NO_LEX_ERROR)
-	{
-		fprintf(stderr, "Error type B at Line %d:  %s\n", yylineno, msg);
-	}
-}

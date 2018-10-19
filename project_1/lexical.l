@@ -10,10 +10,6 @@
 		yylloc.last_column = yycolumn + yyleng - 1; \
 		yycolumn += yyleng;
     
-    extern "C"
-    {
-        int yylex(void);
-    }
 %}
 
 %option yylineno

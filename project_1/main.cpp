@@ -4,9 +4,6 @@ Node* treeRoot = NULL;
 SyntaxErrorFlag syntaxErrorFlag = NO_SYNTAX_ERROR;
 LexErrorFlag lexErrorFlag = NO_LEX_ERROR;
 
-extern int yyparse(void);
-extern void yyrestart(FILE*);
-extern void yyerror(char*);
 
 int main(int argc, char** argv) {
     if(argc <= 1)

@@ -17,16 +17,16 @@ using namespace std;
 //     void yyerror(char*);
 // }
 // extern int yylex(void);
-// extern int yyparse(void);
-// extern void yyrestart(FILE*);
-// extern void yyerror(char*);
+extern int yyparse(void);
+extern void yyrestart(FILE*);
+extern void yyerror(char*);
 extern int yylineno;
 
 /*
  * Functions and variables provided by flex.
  */
 extern FILE* yyin;
-// extern int yylex(void);
+extern int yylex(void);
 extern void yyrestart(FILE *);
 
 /*
@@ -39,4 +39,5 @@ enum SyntaxErrorFlag{NO_SYNTAX_ERROR, NEAR_END_ERROR};
 extern SyntaxErrorFlag syntaxErrorFlag;
 enum LexErrorFlag{NO_LEX_ERROR};
 extern LexErrorFlag lexErrorFlag;
+
 #endif
