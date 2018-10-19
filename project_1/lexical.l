@@ -130,17 +130,17 @@ LineFeed \n
         printf("Error type A at Line %d:  Mysterious characters \'%s\'\n", yylineno, yytext);
     }
 %%
-int main(int argc, char** argv) {
-    if (argc > 1) {
-        if (!(yyin = fopen(argv[1], "r"))) {
-            perror(argv[1]);
-            return 1;
-        }
-    }
-    yylineno = 1;
-    yylex();
-    // while (yylex() != 0) {
-        printf("%8d%8d%8d total\n", lines, words, chars);
-    // }
-	return 0;
-}
+// int main(int argc, char** argv) {
+//     if (argc > 1) {
+//         if (!(yyin = fopen(argv[1], "r"))) {
+//             perror(argv[1]);
+//             return 1;
+//         }
+//     }
+//     yylineno = 1;
+//     yylex();
+//     // while (yylex() != 0) {
+//         printf("%8d%8d%8d total\n", lines, words, chars);
+//     // }
+// 	return 0;
+// }

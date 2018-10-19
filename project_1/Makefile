@@ -1,5 +1,5 @@
 # 编译器设定和编译选项
-CC = gcc
+CC = g++
 FLEX = flex
 BISON = bison
 CFLAGS = -std=c99
@@ -31,7 +31,7 @@ syntax-c: $(YFILE)
 # 定义的一些伪目标
 .PHONY: clean test
 test:
-	./scanner ../Test/pretest/3.txt
+	./scanner ../Test/pretest/1.txt
 clean:
 	rm -f parser lex.yy.c syntax.tab.c syntax.tab.h syntax.output
 	rm -f $(OBJS) $(OBJS:.o=.d)
@@ -39,4 +39,4 @@ clean:
 	rm -f *~
 tmp:
 	$(FLEX) lexical.l
-	$(CC) lex.yy.c -lfl -o scanner
+	$(CC) main.c lex.yy.c SyntaxTree.cpp -lfl -o scanner
