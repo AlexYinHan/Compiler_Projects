@@ -249,7 +249,7 @@ DefList	: Def DefList{
 			$$->addChild($1);
 			$$->addChild($2);
 		}
-		| /* empty */{ $$=NULL; }
+		| /* empty */{ $$ = NULL; }
 		;
 Def	: Specifier DecList SEMI{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Def", @$.first_line);

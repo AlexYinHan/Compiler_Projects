@@ -33,10 +33,12 @@ private:
     Node *father;
 
     void setFather(Node *node);
+    void printNode();
 public:
 
     Node(NodeType nodeType, string nodeName, int lineno);
     Node(NodeType nodeType, string nodeName, string value, int lineno);
+    ~Node();
     void setValue(int value);
     void setValue(float value);
     void setValue(string value);
@@ -45,6 +47,7 @@ public:
     void addChild(Node *node);
     Node* getFather();
     static void deleteTree(Node *root);
+    static void printTree(Node *root, int depth);
     static void printTree(Node *root);
 };
 

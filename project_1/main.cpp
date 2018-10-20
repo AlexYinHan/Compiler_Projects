@@ -21,9 +21,9 @@ int main(int argc, char** argv) {
 
 	if(lexErrorFlag == NO_LEX_ERROR && syntaxErrorFlag == NO_SYNTAX_ERROR)
 	{
-		cout << "here" << endl;
-		// Node::printTree(treeRoot);
+		Node::printTree(treeRoot);
 	}
 
+	Node::deleteTree(treeRoot);
 	return 0;
 }
