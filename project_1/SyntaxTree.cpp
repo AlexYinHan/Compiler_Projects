@@ -125,14 +125,28 @@ void Node::printTree(Node*p, int depth)
     {
         printf("  ");   // two space
     }
-    printf("%s (%d)\n", p->nodeName.c_str(), p->lineno);
-    // switch(p->nodeType)
-    // {
-    //     case NODE_TYPE_NON_TERMINAL:
-    //         printf("%s (%d)\n", p->nodeName.c_str(), p->lineno);
-    //     default:
-    //         break;
-    // }
+    // printf("%s (%d)\n", p->nodeName.c_str(), p->lineno);
+    switch(p->nodeType)
+    {
+        case NODE_TYPE_NON_TERMINAL:
+        case NODE_TYPE_RELOP:
+            printf("%s (%d)\n", p->nodeName.c_str(), p->lineno);
+            break;
+        case NODE_TYPE_INT:
+        case NODE_TYPE_FLOAT:
+        case NODE_TYPE_ID:
+        case NODE_TYPE_KEYWORD:
+            printf("%s: %s\n", p->nodeName.c_str(), p->value.c_str());
+            break;
+        case NODE_TYPE_BRACKET:
+        case NODE_TYPE_PUNCTUATION:
+        case NODE_TYPE_OPERATOR:
+            printf("%s\n", p->nodeName.c_str());
+            break;
+        default:
+            printf("%s (%d)\n", p->nodeName.c_str(), p->lineno);
+            break;
+    }
 
     for (list<Node*>::iterator it = p->children.begin(); it != p->children.end(); it ++)
     {
