@@ -13,6 +13,7 @@
 %}
 
 %option yylineno
+%x IN_COMMENT
 
 Ws [ \t]+
 Digit [0-9]
@@ -37,8 +38,16 @@ Relop >|<|>=|<=|==|!=
 Type int|float
 Identifier ({Letter}|_)({Letter}|{Digit}|_)*
 LineFeed \n
+LineComment "//"[^\r\n]*
+Comment {BlockComment}|{LineComment}
 %%
-{Ws} {/*tabs and whitespaces*/}     
+{Ws} {/*tabs and whitespaces*/}  
+{LineComment} {/*comments*/}  
+<INITIAL>"/*"         BEGIN(IN_COMMENT);
+<IN_COMMENT>"*/"      BEGIN(INITIAL);
+<IN_COMMENT>[^*\n]+   // eat comment in chunks
+<IN_COMMENT>"*"       // eat the lone star
+<IN_COMMENT>\n        yylineno++;
 ";" {
         yylval.type_node = new Node(NODE_TYPE_PUNCTUATION, "SEMI", yytext, yylineno);
         return SEMI; 
