@@ -40,99 +40,127 @@ LineFeed \n
 %%
 {Ws} {/*tabs and whitespaces*/}     
 ";" {
-        
+        yylval.type_node = new Node(NODE_TYPE_PUNCTUATION, "SEMI", yytext, yylineno);
+        return SEMI; 
     } 
 "," {
-
+        yylval.type_node = new Node(NODE_TYPE_PUNCTUATION, "COMMA", yytext, yylineno);
+        return COMMA;
     }   
 "=" {
-
+        yylval.type_node = new Node(NODE_TYPE_OPERATOR, "ASSIGNOP", yytext, yylineno);
+        return ASSIGNOP;
     }      
 {Relop} {
-
+            yylval.type_node = new Node(NODE_TYPE_RELOP, "RELOP", yytext, yylineno);
+            return RELOP;
         }
 "+" {
-
+        yylval.type_node = new Node(NODE_TYPE_OPERATOR, "PLUS", yytext, yylineno);
+        return PLUS;
     }
 "-" {
-
+        yylval.type_node = new Node(NODE_TYPE_OPERATOR, "MINUS", yytext, yylineno);
+        return MINUS;
     }
 "*" {
-
+        yylval.type_node = new Node(NODE_TYPE_OPERATOR, "STAR", yytext, yylineno);
+        return STAR;
     } 
 "/" {
-
+        yylval.type_node = new Node(NODE_TYPE_OPERATOR, "DIV", yytext, yylineno);
+        return DIV;
     }   
 "&&"    {
-
+            yylval.type_node = new Node(NODE_TYPE_OPERATOR, "AND", yytext, yylineno);
+            return AND;
         }
 "||"    {
-
+            yylval.type_node = new Node(NODE_TYPE_OPERATOR, "OR", yytext, yylineno);
+            return OR;
         }
 "." {
-
+        yylval.type_node = new Node(NODE_TYPE_PUNCTUATION, "DOT", yytext, yylineno);
+        return DOT;
     }
 "!" {
-
+        yylval.type_node = new Node(NODE_TYPE_OPERATOR, "NOT", yytext, yylineno);
+        return NOT;
     }
 {Type}  {
-
+            yylval.type_node = new Node(NODE_TYPE_KEYWORD, "TYPE", yytext, yylineno);
+            return TYPE;
         }
 "(" {
-
+        yylval.type_node = new Node(NODE_TYPE_BRACKET, "LP", yytext, yylineno);
+        return LP;
     }
 ")" {
-
+        yylval.type_node = new Node(NODE_TYPE_BRACKET, "RP", yytext, yylineno);
+        return RP;
     }
 "[" {
-
+        yylval.type_node = new Node(NODE_TYPE_BRACKET, "LB", yytext, yylineno);
+        return LB;
     }
 "]" {
-
+        yylval.type_node = new Node(NODE_TYPE_BRACKET, "RB", yytext, yylineno);
+        return RB;
     }
 "{" {
-
+        yylval.type_node = new Node(NODE_TYPE_BRACKET, "LC", yytext, yylineno);
+        return LC;
     }    
 "}" {
-
+        yylval.type_node = new Node(NODE_TYPE_BRACKET, "RC", yytext, yylineno);
+        return RC;
     }
 "struct"    {
-
+                yylval.type_node = new Node(NODE_TYPE_KEYWORD, "STRUCT", yytext, yylineno);
+                return STRUCT;
             }
 "return"    {
-
+                yylval.type_node = new Node(NODE_TYPE_KEYWORD, "RETURN", yytext, yylineno);
+                return RETURN;
             }   
 "if"    {
-
+            yylval.type_node = new Node(NODE_TYPE_KEYWORD, "IF", yytext, yylineno);
+            return IF;
         }
 "else"  {
-
+            yylval.type_node = new Node(NODE_TYPE_KEYWORD, "ELSE", yytext, yylineno);
+            return ELSE;
         }   
 "while" {
-
+            yylval.type_node = new Node(NODE_TYPE_KEYWORD, "WHILE", yytext, yylineno);
+            return WHILE;
         }               
 {UnsignedIntegerConstant}   {
-                                printf("INT\n");
+                                yylval.type_node = new Node(NODE_TYPE_INT, "INT", yytext, yylineno);
+                                return INT;
                             }
 {DecimalFloatingConstant}   {
-                                printf("FLOAT\n");
+                                yylval.type_node = new Node(NODE_TYPE_FLOAT, "FLOAT", yytext, yylineno);
+                                return FLOAT;
                             }
 {UnsignedIntegerConstantLike}   { 
                                     printf("Error type A at line %d: Illegal integer \'%s\'\n", yylineno, yytext); 
-                                    // errorLexFlag = 1;
+                                    lexErrorFlag = LEX_ERROR;
                                 } 
 {FloatingConstantLike}  { 
                             printf("Error type A at line %d: Illegal float point number \'%s\'\n", yylineno, yytext); 
-                            // errorLexFlag = 1;
+                            lexErrorFlag = LEX_ERROR;
                         }
 {Identifier}    {
-                    printf("ID\n");
+                    yylval.type_node = new Node(NODE_TYPE_ID, "ID", yytext, yylineno);
+                    return ID;
                 }
 {LineFeed}  {
                 yycolumn = 1;
             }
 .   {
         printf("Error type A at Line %d:  Mysterious characters \'%s\'\n", yylineno, yytext);
+        lexErrorFlag = LEX_ERROR;
     }
 %%
 // int main(int argc, char** argv) {

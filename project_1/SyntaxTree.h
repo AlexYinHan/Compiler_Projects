@@ -7,20 +7,28 @@
 using namespace std;
 
 extern int yylineno;
-enum NodeType{TERMINAL, NON_TERMINAL};
+
+enum NodeType
+{
+    /*
+     * Imply type of a node in syntax tree
+     * Use "NODE_TYPE_" prefix make different to tokens declared in syntax.y
+     */
+    NODE_TYPE_KEYWORD, // reserved words
+    NODE_TYPE_RELOP, NODE_TYPE_BRACKET, NODE_TYPE_PUNCTUATION, NODE_TYPE_OPERATOR, // symbols
+    NODE_TYPE_ID, NODE_TYPE_INT, NODE_TYPE_FLOAT, // identifiers and constants
+    NODE_TYPE_NON_TERMINAL
+};
+
 class Node 
 {
 private:
 
     NodeType nodeType;
     string nodeName;
+    string value;   //attribute value
     int lineno;
-    /*attribute value of numbers*/
-    union   
-    {
-        int int_value;
-        float float_value;
-    };
+
     list<Node*> children;
     Node *father;
 
@@ -28,8 +36,10 @@ private:
 public:
 
     Node(NodeType nodeType, string nodeName, int lineno);
+    Node(NodeType nodeType, string nodeName, string value, int lineno);
     void setValue(int value);
     void setValue(float value);
+    void setValue(string value);
     int getIntValue();
     float getFloatValue();
     void addChild(Node *node);

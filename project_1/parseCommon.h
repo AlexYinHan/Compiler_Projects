@@ -6,28 +6,16 @@
 #include "SyntaxTree.h"
 using namespace std;
 
-/*
- * Functions and variables generated in lex.yy.c
- */
-// extern "C"
-// {
-//     int yylex(void);
-//     int yyparse(void);
-//     void yyrestart(FILE*);
-//     void yyerror(char*);
-// }
-// extern int yylex(void);
-extern int yyparse(void);
-extern void yyrestart(FILE*);
-extern void yyerror(char*);
-extern int yylineno;
 
 /*
  * Functions and variables provided by flex.
  */
+extern int yyparse(void);
+extern void yyerror(const char*);
 extern FILE* yyin;
 extern int yylex(void);
 extern void yyrestart(FILE *);
+extern int yylineno;
 
 /*
  * Globally used variables.
@@ -37,7 +25,7 @@ extern void yyrestart(FILE *);
 extern Node* treeRoot;	
 enum SyntaxErrorFlag{NO_SYNTAX_ERROR, NEAR_END_ERROR};
 extern SyntaxErrorFlag syntaxErrorFlag;
-enum LexErrorFlag{NO_LEX_ERROR};
+enum LexErrorFlag{NO_LEX_ERROR, LEX_ERROR};
 extern LexErrorFlag lexErrorFlag;
 
 #endif

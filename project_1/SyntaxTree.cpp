@@ -5,24 +5,36 @@ Node::Node(NodeType nodeType, string nodeName, int lineno)
     this->nodeType = nodeType;
     this->nodeName = nodeName;
     this->lineno = lineno;
-    this->int_value = 0; // set default value;
+    this->value = " "; // set default value;
+}
+
+Node::Node(NodeType nodeType, string nodeName, string value, int lineno)
+{
+    this->nodeType = nodeType;
+    this->nodeName = nodeName;
+    this->lineno = lineno;
+    this->value = value; // set default value;
 }
 
 void Node::setValue(int value)
 {
-    this->int_value = value;
+    this->value = to_string(value);
 }
 void Node::setValue(float value)
 {
-    this->float_value = value;
+    this->value = to_string(value);
+}
+void Node::setValue(string value)
+{
+    this->value = value;
 }
 int Node::getIntValue()
 {
-    return this->int_value;
+    return atoi(this->value.c_str());
 }
 float Node::getFloatValue()
 {
-    return this->float_value;
+    return atof(this->value.c_str());
 }
 void Node::addChild(Node *node)
 {
