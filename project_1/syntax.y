@@ -49,15 +49,17 @@
 %type <type_node> DefList Def DecList Dec
 %type <type_node> Exp Args
 
+/* combination principles */
 %right ASSIGNOP
 %left OR
 %left AND
 %left RELOP 
-%left PLUS 
+%left PLUS MINUS
 %left STAR DIV
 %right NOT
-%left LP RP LB RB DOT
+%left DOT LP RP LB RB
 
+/* avoid if-else shift/reduce conflict */
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
 
@@ -149,14 +151,14 @@ VarDec : ID{
 			$$ = new Node(NODE_TYPE_NON_TERMINAL, "VarDec", @$.first_line);
 			$$->addChild($1);
 		}
-	   | VarDec LB INT RB{
+	   	| VarDec LB INT RB{
 			$$ = new Node(NODE_TYPE_NON_TERMINAL, "VarDec", @$.first_line);
 			$$->addChild($1);
 			$$->addChild($2);
 			$$->addChild($3);
 			$$->addChild($4);
 		}
-	   ;
+	   	;
 FunDec	: ID LP VarList RP{
 			$$ = new Node(NODE_TYPE_NON_TERMINAL, "FunDec", @$.first_line);
 			$$->addChild($1);
@@ -198,7 +200,7 @@ CompSt	: LC DefList StmtList RC{
 			$$->addChild($3);
 			$$->addChild($4);
 		}
-		| LC error RC{ syntaxErrorFlag = NEAR_END_ERROR; }
+		| error RC{ syntaxErrorFlag = NEAR_END_ERROR; }
 	   	;
 StmtList	: Stmt StmtList{
 				$$ = new Node(NODE_TYPE_NON_TERMINAL, "StmtList", @$.first_line);
@@ -240,6 +242,7 @@ Stmt	: Exp SEMI{
 			$$->addChild($1);$$->addChild($2);$$->addChild($3);
 			$$->addChild($4);$$->addChild($5);
 		}
+		| error RP { syntaxErrorFlag = NEAR_END_ERROR; }
 		| error SEMI { syntaxErrorFlag = NEAR_END_ERROR; }
 		;
 
@@ -257,7 +260,6 @@ Def	: Specifier DecList SEMI{
 		$$->addChild($2);
 		$$->addChild($3);
 	}
-	| error SEMI{ syntaxErrorFlag = NEAR_END_ERROR; }
 	;
 DecList	: Dec{
 			$$ = new Node(NODE_TYPE_NON_TERMINAL, "DecList", @$.first_line);

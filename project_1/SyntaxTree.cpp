@@ -1,5 +1,11 @@
 #include "SyntaxTree.h"
 
+/*
+ * Constructor.
+ * @param value
+ *  For non-terminals, set to " ", because the value field is meaningless.
+ *  For a termianl symbol, value is the actual text of it.
+ */
 Node::Node(NodeType nodeType, string nodeName, int lineno)
 {
     this->nodeType = nodeType;
@@ -13,15 +19,16 @@ Node::Node(NodeType nodeType, string nodeName, string value, int lineno)
     this->nodeType = nodeType;
     this->nodeName = nodeName;
     this->lineno = lineno;
-    this->value = value; // set default value;
+    this->value = value;
 }
 
 /*
- * Do not delete father. 
+ * Destructor.
+ * Do not free 'father' pointer. 
  */
 Node::~Node()
 {
-    
+
 }
 void Node::setValue(int value)
 {
