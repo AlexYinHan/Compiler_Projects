@@ -42,7 +42,8 @@
 %token <type_node> WHILE
 
 /* declared non-terminals */
-%type <type_node> Program ExtDefList ExtDef ExtDecList
+%type <type_node> Program 
+%type <type_node> ExtDefList ExtDef ExtDecList
 %type <type_node> Specifier StructSpecifier OptTag Tag
 %type <type_node> VarDec FunDec VarList ParamDec
 %type <type_node> CompSt StmtList Stmt
@@ -403,5 +404,5 @@ Args	: Exp COMMA Args{
 
 void yyerror(const char *msg)
 {
-	fprintf(stderr, "Error type B at Line %d:  %s\n",yylineno,msg);
+	fprintf(stderr, "Error type B at Line %d: %s\n",yylineno,msg);
 }

@@ -14,9 +14,10 @@ LFC = $(shell find ./ -name "*.l" | sed s/[^/]*\\.l/lex.yy.c/)
 YFC = $(shell find ./ -name "*.y" | sed s/[^/]*\\.y/syntax.tab.c/)
 LFO = $(LFC:.c=.o)
 YFO = $(YFC:.c=.o)
+TESTFILES = $(shell find ../Test -name "*.cmm")
 
 parser: syntax $(CFILES)
-	$(CC) $(CPPFILES) $(CFILES) -lfl -ly -o parser
+	$(CC) $(CPPFILES) $(CFILES) -lfl -ly -o ../parser
 
 syntax: lexical syntax-c
 	$(CC) -c $(YFC) -o $(YFO)
@@ -32,13 +33,13 @@ syntax-c: $(YFILE)
 # 定义的一些伪目标
 .PHONY: clean test
 test:
-	./parser ../Test/pretest/1.txt
+	for name in $(TESTFILES); \
+		do \
+			echo $$name; \
+			../parser $$name; \
+		done 
 clean:
 	rm -f parser lex.yy.c syntax.tab.c syntax.tab.h syntax.output
 	rm -f $(OBJS) $(OBJS:.o=.d)
 	rm -f $(LFC) $(YFC) $(YFC:.c=.h)
 	rm -f *~
-tmp:
-	$(BISON) -d syntax.y
-	$(FLEX) lexical.l
-	$(CC) main.cpp syntax.tab.c SyntaxTree.cpp lex.yy.c -lfl -ly -o parser

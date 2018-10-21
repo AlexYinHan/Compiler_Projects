@@ -24,16 +24,13 @@ Letter [a-zA-zA]
 DecimalInteger 0|({NonzeroDigit}{Digit}*)
 OctalDigit [0-7]
 OctalInteger 0({OctalDigit}+)
-OctalInteger_Error 0[0-9A-WYZa-wyz][0-9A-Za-z]*
 HexDigit [0-9a-fA-F]
 HexInteger 0[xX]({HexDigit}+)
-HexInteger_Error [0][xX][0-9A-Za-z]*
-UnsignedIntegerConstant {DecimalInteger}|{OctalInteger}|{HexInteger}
-UnsignedIntegerConstantLike [0-9][0-9a-zA-F]*
+UnsignedIntegerConstantLike [0-9][0-9a-zA-Z]*
 ExponentPart [eE]{Sign}?{DigitSequence}
 FractionalConstant ({DigitSequence}?\.{DigitSequence})|({DigitSequence}\.)
 DecimalFloatingConstant ({FractionalConstant}{ExponentPart}?)|({DigitSequence}{ExponentPart})
-FloatingConstantLike [0-9][0-9a-zA-F+-\.]*
+FloatingConstantLike [0-9][0-9a-zA-Z+-\.]*
 Relop >|<|>=|<=|==|!=
 Type int|float
 Identifier ({Letter}|_)({Letter}|{Digit}|_)*
@@ -47,7 +44,7 @@ Comment {BlockComment}|{LineComment}
 <IN_COMMENT>"*/"      BEGIN(INITIAL);
 <IN_COMMENT>[^*\n]+   // eat comment in chunks
 <IN_COMMENT>"*"       // eat the lone star
-<IN_COMMENT>\n        yylineno++;
+<IN_COMMENT>\n        
 ";" {
         yylval.type_node = new Node(NODE_TYPE_PUNCTUATION, "SEMI", yytext, yylineno);
         return SEMI; 
@@ -144,10 +141,18 @@ Comment {BlockComment}|{LineComment}
             yylval.type_node = new Node(NODE_TYPE_KEYWORD, "WHILE", yytext, yylineno);
             return WHILE;
         }               
-{UnsignedIntegerConstant}   {
-                                yylval.type_node = new Node(NODE_TYPE_INT, "INT", yytext, yylineno);
-                                return INT;
-                            }
+{DecimalInteger}    {
+                        yylval.type_node = new Node(NODE_TYPE_DEC_INT, "INT", yytext, yylineno);
+                        return INT;
+                    }
+{OctalInteger}      {
+                        yylval.type_node = new Node(NODE_TYPE_OCT_INT, "INT", yytext, yylineno);
+                        return INT;
+                    }
+{HexInteger}    {
+                    yylval.type_node = new Node(NODE_TYPE_HEX_INT, "INT", yytext, yylineno);
+                    return INT;
+                }
 {DecimalFloatingConstant}   {
                                 yylval.type_node = new Node(NODE_TYPE_FLOAT, "FLOAT", yytext, yylineno);
                                 return FLOAT;
@@ -155,10 +160,18 @@ Comment {BlockComment}|{LineComment}
 {UnsignedIntegerConstantLike}   { 
                                     printf("Error type A at line %d: Illegal integer \'%s\'\n", yylineno, yytext); 
                                     lexErrorFlag = LEX_ERROR;
+                                    /* for a error number, store it in node anyway
+                                     * so that it won't raise an extra syntax error 
+                                     */
+                                    yylval.type_node = new Node(NODE_TYPE_DEC_INT, "INT", yytext, yylineno);
+                                    return INT;
                                 } 
 {FloatingConstantLike}  { 
                             printf("Error type A at line %d: Illegal float point number \'%s\'\n", yylineno, yytext); 
                             lexErrorFlag = LEX_ERROR;
+                            // same as above
+                            yylval.type_node = new Node(NODE_TYPE_FLOAT, "FLOAT", yytext, yylineno);
+                            return FLOAT;
                         }
 {Identifier}    {
                     yylval.type_node = new Node(NODE_TYPE_ID, "ID", yytext, yylineno);

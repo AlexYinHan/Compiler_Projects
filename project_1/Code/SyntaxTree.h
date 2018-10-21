@@ -4,6 +4,7 @@
 #include <iostream>
 #include <list>
 #include <string>
+#include <sstream>
 using namespace std;
 
 extern int yylineno;
@@ -16,7 +17,7 @@ enum NodeType
      */
     NODE_TYPE_KEYWORD, // reserved words
     NODE_TYPE_RELOP, NODE_TYPE_BRACKET, NODE_TYPE_PUNCTUATION, NODE_TYPE_OPERATOR, // symbols
-    NODE_TYPE_ID, NODE_TYPE_INT, NODE_TYPE_FLOAT, // identifiers and constants
+    NODE_TYPE_ID, NODE_TYPE_DEC_INT, NODE_TYPE_OCT_INT, NODE_TYPE_HEX_INT, NODE_TYPE_FLOAT, // identifiers and constants
     NODE_TYPE_NON_TERMINAL
 };
 

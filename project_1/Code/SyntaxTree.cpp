@@ -12,6 +12,7 @@ Node::Node(NodeType nodeType, string nodeName, int lineno)
     this->nodeName = nodeName;
     this->lineno = lineno;
     this->value = " "; // set default value;
+    this->father = NULL;
 }
 
 Node::Node(NodeType nodeType, string nodeName, string value, int lineno)
@@ -20,6 +21,7 @@ Node::Node(NodeType nodeType, string nodeName, string value, int lineno)
     this->nodeName = nodeName;
     this->lineno = lineno;
     this->value = value;
+    this->father = NULL;
 }
 
 /*
@@ -126,14 +128,35 @@ void Node::printTree(Node*p, int depth)
         printf("  ");   // two space
     }
     // printf("%s (%d)\n", p->nodeName.c_str(), p->lineno);
+    stringstream ss;
+    int int_value;
+    float float_value;
     switch(p->nodeType)
     {
         case NODE_TYPE_NON_TERMINAL:
         case NODE_TYPE_RELOP:
             printf("%s (%d)\n", p->nodeName.c_str(), p->lineno);
             break;
-        case NODE_TYPE_INT:
+        case NODE_TYPE_DEC_INT:
+            ss << p->value;
+            ss >> int_value;
+            printf("%s: %d\n", p->nodeName.c_str(), int_value);
+            break;
+        case NODE_TYPE_OCT_INT:
+            ss << std::oct << p->value;
+            ss >> std::oct >> int_value;
+            printf("%s: %d\n", p->nodeName.c_str(), int_value);
+            break;
+        case NODE_TYPE_HEX_INT:
+            ss << std::hex << p->value;
+            ss >> std::hex >> int_value;
+            printf("%s: %d\n", p->nodeName.c_str(), int_value);
+            break;
         case NODE_TYPE_FLOAT:
+            ss << p->value;
+            ss >> float_value;
+            printf("%s: %f\n", p->nodeName.c_str(), float_value);
+            break;
         case NODE_TYPE_ID:
         case NODE_TYPE_KEYWORD:
             printf("%s: %s\n", p->nodeName.c_str(), p->value.c_str());
