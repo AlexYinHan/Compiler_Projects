@@ -10,6 +10,7 @@
 		yylloc.last_column = yycolumn + yyleng - 1; \
 		yycolumn += yyleng;
     
+    
 %}
 
 %option yylineno

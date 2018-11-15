@@ -13,7 +13,8 @@ using namespace std;
 extern int yyparse(void);
 extern void yyerror(const char*);
 extern FILE* yyin;
-extern int yylex(void);
+// extern int yylex(void);
+extern "C" int yylex(void);
 extern void yyrestart(FILE *);
 extern int yylineno;
 
