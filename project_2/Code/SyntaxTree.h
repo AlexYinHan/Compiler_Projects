@@ -1,11 +1,11 @@
 #ifndef _SYNTAXTREE_H
 #define _SYNTAXTREE_H
 
-#include <iostream>
+#include "common.h"
 #include <list>
-#include <string>
+#include <vector>
 #include <sstream>
-using namespace std;
+#include <exception>
 
 extern int yylineno;
 
@@ -29,8 +29,9 @@ private:
     string nodeName;
     string value;   //attribute value
     int lineno;
+    int productionNo;   //start from 0
 
-    list<Node*> children;
+    vector<Node*> children;
     Node *father;
 
     void setFather(Node *node);
@@ -43,10 +44,17 @@ public:
     void setValue(int value);
     void setValue(float value);
     void setValue(string value);
+    NodeType getNodeType(){ return this->nodeType;}
+    string getNodeName(){ return this->nodeName;}
     int getIntValue();
     float getFloatValue();
+    string getValue();
+    int getLineno(){ return this->lineno;}
+    void setProductionNo(int no){ this->productionNo = no;}
+    int getProductionNo(){ return this->productionNo;}
     void addChild(Node *node);
     Node* getFather();
+    Node* getChild(int index);
     static void deleteTree(Node *root);
     static void printTree(Node *root, int depth);
     static void printTree(Node *root);

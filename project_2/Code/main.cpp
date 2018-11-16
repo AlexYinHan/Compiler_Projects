@@ -1,4 +1,5 @@
 #include "parseCommon.h"
+#include "SemanticAnalyzer.h"
 
 Node* treeRoot = NULL;
 SyntaxErrorFlag syntaxErrorFlag = NO_SYNTAX_ERROR;
@@ -21,7 +22,9 @@ int main(int argc, char** argv) {
 
 	if(lexErrorFlag == NO_LEX_ERROR && syntaxErrorFlag == NO_SYNTAX_ERROR)
 	{
-		Node::printTree(treeRoot);
+		// Node::printTree(treeRoot);
+		SemanticAnalyzer semanticAnalyzer;
+		semanticAnalyzer.analyse(treeRoot);
 	}
 
 	Node::deleteTree(treeRoot);

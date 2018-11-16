@@ -30,7 +30,7 @@ UnsignedIntegerConstantLike [0-9][0-9a-zA-Z]*
 ExponentPart [eE]{Sign}?{DigitSequence}
 FractionalConstant ({DigitSequence}?\.{DigitSequence})|({DigitSequence}\.)
 DecimalFloatingConstant ({FractionalConstant}{ExponentPart}?)|({DigitSequence}{ExponentPart})
-FloatingConstantLike [0-9][0-9a-zA-Z+-\.]*
+FloatingConstantLike [0-9][0-9a-zA-Z+\-\.]*
 Relop >|<|>=|<=|==|!=
 Type int|float
 Identifier ({Letter}|_)({Letter}|{Digit}|_)*

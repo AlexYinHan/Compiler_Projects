@@ -46,11 +46,34 @@ void Node::setValue(string value)
 }
 int Node::getIntValue()
 {
-    return atoi(this->value.c_str());
+    int int_value = 0;
+    stringstream ss;
+    switch(this->nodeType)
+    {
+        case NODE_TYPE_DEC_INT:
+            ss << this->value;
+            ss >> int_value;
+            break;
+        case NODE_TYPE_OCT_INT:
+            ss << std::oct << this->value;
+            ss >> std::oct >> int_value;
+            break;
+        case NODE_TYPE_HEX_INT:
+            ss << std::hex << this->value;
+            ss >> std::hex >> int_value;
+            break;
+        default: ;
+    }
+    return int_value;
+    // return atoi(this->value.c_str());
 }
 float Node::getFloatValue()
 {
     return atof(this->value.c_str());
+}
+string Node::getValue()
+{
+    return this->value;
 }
 
 /*
@@ -61,12 +84,12 @@ float Node::getFloatValue()
  */
 void Node::addChild(Node *node)
 {
-    if(node == NULL)
-    {
-        return;
-    }
+    
     this->children.push_back(node);
-    node->setFather(this);
+    if(node != NULL)
+    {
+        node->setFather(this);
+    }
 }
 
 /*
@@ -83,6 +106,19 @@ Node* Node::getFather()
     return this->father;
 }
 
+Node* Node::getChild(int index)
+{
+    // cout << this->nodeName << index << "," << this->children.size() << endl;
+    try
+    {
+        return this->children.at(index);
+    }
+    catch(exception& e)
+    {
+        return NULL;
+    }
+}
+
 /**
  * Delete the whole sub tree
  * which means delete/free this node, along with all its descendants
@@ -91,11 +127,10 @@ void Node::deleteTree(Node*root)
 {
     if(root == NULL) 
     {
-        // just in case, shouldn't really reach here.
         return;
     }
 
-    for (list<Node*>::iterator it = root->children.begin(); it != root->children.end();)
+    for (vector<Node*>::iterator it = root->children.begin(); it != root->children.end();)
     {
         Node *p = *it;
         it ++;
@@ -171,7 +206,7 @@ void Node::printTree(Node*p, int depth)
             break;
     }
 
-    for (list<Node*>::iterator it = p->children.begin(); it != p->children.end(); it ++)
+    for (vector<Node*>::iterator it = p->children.begin(); it != p->children.end(); it ++)
     {
         printTree(*it, depth + 1);
     }

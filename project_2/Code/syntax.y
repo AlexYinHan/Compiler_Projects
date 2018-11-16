@@ -70,6 +70,7 @@
 Program	: ExtDefList { 
             $$ = new Node(NODE_TYPE_NON_TERMINAL, "Program", @$.first_line);
 			$$->addChild($1);
+			$$->setProductionNo(0);
 			treeRoot = $$;
 		}
 		;
@@ -77,6 +78,7 @@ ExtDefList  : ExtDef ExtDefList {
 				$$ = new Node(NODE_TYPE_NON_TERMINAL, "ExtDefList", @$.first_line);
 				$$->addChild($1);
 				$$->addChild($2);
+				$$->setProductionNo(0);
             }
             |/* empty */ { $$ = NULL; }
             ;
@@ -85,29 +87,34 @@ ExtDef	: Specifier ExtDecList SEMI{
 			$$->addChild($1);
 			$$->addChild($2);
 			$$->addChild($3);
+			$$->setProductionNo(0);
 		}
 		| Specifier SEMI{
 	   		$$ = new Node(NODE_TYPE_NON_TERMINAL, "ExtDef", @$.first_line);
 			$$->addChild($1);
 			$$->addChild($2);
+			$$->setProductionNo(1);
 		}
 		| Specifier FunDec CompSt{
 	   		$$ = new Node(NODE_TYPE_NON_TERMINAL, "ExtDef", @$.first_line);
 			$$->addChild($1);
 			$$->addChild($2);
 			$$->addChild($3);
+			$$->setProductionNo(2);
 		}
 		| error SEMI { syntaxErrorFlag = NEAR_END_ERROR; }
 		;
 ExtDecList	: VarDec{
 		   		$$ = new Node(NODE_TYPE_NON_TERMINAL, "ExtDecList", @$.first_line);
 				$$->addChild($1);
+				$$->setProductionNo(0);
 			}
 		    | VarDec COMMA ExtDecList{
 	   			$$ = new Node(NODE_TYPE_NON_TERMINAL, "ExtDecList", @$.first_line);
 				$$->addChild($1);
 				$$->addChild($2);
 				$$->addChild($3);
+				$$->setProductionNo(1);
 			}
 			;
 
@@ -115,10 +122,12 @@ ExtDecList	: VarDec{
 Specifier	: TYPE{
 		  		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Specifier", @$.first_line);
 				$$->addChild($1);
+				$$->setProductionNo(0);
 			}
 		  	| StructSpecifier{
 				$$ = new Node(NODE_TYPE_NON_TERMINAL, "Specifier", @$.first_line);
 				$$->addChild($1);
+				$$->setProductionNo(1);
 			}
 			;
 StructSpecifier	: STRUCT OptTag LC DefList RC{
@@ -128,22 +137,26 @@ StructSpecifier	: STRUCT OptTag LC DefList RC{
 					$$->addChild($3);
 					$$->addChild($4);
 					$$->addChild($5);
+					$$->setProductionNo(0);
 				}
 				| STRUCT Tag{
 					$$ = new Node(NODE_TYPE_NON_TERMINAL, "StructSpecifier", @$.first_line);
 					$$->addChild($1);
 					$$->addChild($2);
+					$$->setProductionNo(1);
 				}
 				;
 OptTag	: ID{
 			$$ = new Node(NODE_TYPE_NON_TERMINAL, "OptTag", @$.first_line);
 			$$->addChild($1);
+			$$->setProductionNo(0);
 		}
 	    | /* empty */{ $$=NULL; }
 		;
 Tag	: ID{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Tag", @$.first_line);
 		$$->addChild($1);
+		$$->setProductionNo(0);
 	}
 	;
 
@@ -151,6 +164,7 @@ Tag	: ID{
 VarDec : ID{
 			$$ = new Node(NODE_TYPE_NON_TERMINAL, "VarDec", @$.first_line);
 			$$->addChild($1);
+			$$->setProductionNo(0);
 		}
 	   	| VarDec LB INT RB{
 			$$ = new Node(NODE_TYPE_NON_TERMINAL, "VarDec", @$.first_line);
@@ -158,6 +172,7 @@ VarDec : ID{
 			$$->addChild($2);
 			$$->addChild($3);
 			$$->addChild($4);
+			$$->setProductionNo(1);
 		}
 	   	;
 FunDec	: ID LP VarList RP{
@@ -166,12 +181,14 @@ FunDec	: ID LP VarList RP{
 			$$->addChild($2);
 			$$->addChild($3);
 			$$->addChild($4);
+			$$->setProductionNo(0);
 		}
 	   	| ID LP RP{
 			$$ = new Node(NODE_TYPE_NON_TERMINAL, "FunDec", @$.first_line);
 			$$->addChild($1);
 			$$->addChild($2);
 			$$->addChild($3);
+			$$->setProductionNo(1);
 		}
 		| error RP{ syntaxErrorFlag = NEAR_END_ERROR; }
 		;
@@ -180,16 +197,19 @@ VarList	: ParamDec COMMA VarList{
 			$$->addChild($1);
 			$$->addChild($2);
 			$$->addChild($3);
+			$$->setProductionNo(0);
 		}
 		| ParamDec{
 			$$ = new Node(NODE_TYPE_NON_TERMINAL, "VarList", @$.first_line);
 			$$->addChild($1);
+			$$->setProductionNo(1);
 		}
 		;
 ParamDec	: Specifier VarDec{
 				$$ = new Node(NODE_TYPE_NON_TERMINAL, "ParamDec", @$.first_line);
 				$$->addChild($1);
 				$$->addChild($2);
+				$$->setProductionNo(0);
 			}
 		 	;
 
@@ -200,6 +220,7 @@ CompSt	: LC DefList StmtList RC{
 			$$->addChild($2);
 			$$->addChild($3);
 			$$->addChild($4);
+			$$->setProductionNo(0);
 		}
 		| error RC{ syntaxErrorFlag = NEAR_END_ERROR; }
 	   	;
@@ -207,6 +228,7 @@ StmtList	: Stmt StmtList{
 				$$ = new Node(NODE_TYPE_NON_TERMINAL, "StmtList", @$.first_line);
 				$$->addChild($1);
 				$$->addChild($2);
+				$$->setProductionNo(0);
 			}
 		 	| /* empty */{ $$ = NULL; }
 			;
@@ -214,16 +236,19 @@ Stmt	: Exp SEMI{
 			$$ = new Node(NODE_TYPE_NON_TERMINAL, "Stmt", @$.first_line);
 			$$->addChild($1);
 			$$->addChild($2);
+			$$->setProductionNo(0);
 		}
 	 	| CompSt{
 			$$ = new Node(NODE_TYPE_NON_TERMINAL, "Stmt", @$.first_line);
 			$$->addChild($1);
+			$$->setProductionNo(1);
 		}
 		| RETURN Exp SEMI{
 			$$ = new Node(NODE_TYPE_NON_TERMINAL, "Stmt", @$.first_line);
 			$$->addChild($1);
 			$$->addChild($2);
 			$$->addChild($3);
+			$$->setProductionNo(2);
 		}
 		| IF LP Exp RP Stmt %prec LOWER_THAN_ELSE{
 			$$ = new Node(NODE_TYPE_NON_TERMINAL, "Stmt", @$.first_line);
@@ -232,16 +257,19 @@ Stmt	: Exp SEMI{
 			$$->addChild($3);
 			$$->addChild($4);
 			$$->addChild($5);
+			$$->setProductionNo(3);
 		}
 		| IF LP Exp RP Stmt ELSE Stmt{
 			$$ = new Node(NODE_TYPE_NON_TERMINAL, "Stmt", @$.first_line);
 			$$->addChild($1);$$->addChild($2);$$->addChild($3);
 			$$->addChild($4);$$->addChild($5);$$->addChild($6);$$->addChild($7);
+			$$->setProductionNo(4);
 		}
 		| WHILE LP Exp RP Stmt{
 			$$ = new Node(NODE_TYPE_NON_TERMINAL, "Stmt", @$.first_line);
 			$$->addChild($1);$$->addChild($2);$$->addChild($3);
 			$$->addChild($4);$$->addChild($5);
+			$$->setProductionNo(5);
 		}
 		| error RP { syntaxErrorFlag = NEAR_END_ERROR; }
 		| error SEMI { syntaxErrorFlag = NEAR_END_ERROR; }
@@ -252,6 +280,7 @@ DefList	: Def DefList{
 			$$ = new Node(NODE_TYPE_NON_TERMINAL, "DefList", @$.first_line);
 			$$->addChild($1);
 			$$->addChild($2);
+			$$->setProductionNo(0);
 		}
 		| /* empty */{ $$ = NULL; }
 		;
@@ -260,28 +289,33 @@ Def	: Specifier DecList SEMI{
 		$$->addChild($1);
 		$$->addChild($2);
 		$$->addChild($3);
+		$$->setProductionNo(0);
 	}
 	;
 DecList	: Dec{
 			$$ = new Node(NODE_TYPE_NON_TERMINAL, "DecList", @$.first_line);
 			$$->addChild($1);
+			$$->setProductionNo(0);
 		}
 		| Dec COMMA DecList{
 			$$ = new Node(NODE_TYPE_NON_TERMINAL, "DecList", @$.first_line);
 			$$->addChild($1);
 			$$->addChild($2);
 			$$->addChild($3);
+			$$->setProductionNo(1);
 		}
 		;
 Dec	: VarDec{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Dec", @$.first_line);
 		$$->addChild($1);
+		$$->setProductionNo(0);
 	}
 	| VarDec ASSIGNOP Exp{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Dec", @$.first_line);
 		$$->addChild($1);
 		$$->addChild($2);
 		$$->addChild($3);
+		$$->setProductionNo(1);
 	}
 
 /* Expressions */
@@ -290,62 +324,73 @@ Exp	: Exp ASSIGNOP Exp{
 		$$->addChild($1);
 		$$->addChild($2);
 		$$->addChild($3);
+		$$->setProductionNo(0);
 	}
 	| Exp AND Exp{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Exp", @$.first_line);
 		$$->addChild($1);
+		$$->setProductionNo(1);
 	}
 	| Exp OR Exp{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Exp", @$.first_line);
 		$$->addChild($1);
 		$$->addChild($2);
 		$$->addChild($3);
+		$$->setProductionNo(2);
 	}
 	| Exp RELOP Exp{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Exp", @$.first_line);
 		$$->addChild($1);
 		$$->addChild($2);
 		$$->addChild($3);
+		$$->setProductionNo(3);
 	}
 	| Exp PLUS Exp{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Exp", @$.first_line);
 		$$->addChild($1);
 		$$->addChild($2);
 		$$->addChild($3);
+		$$->setProductionNo(4);
 	}
 	| Exp MINUS Exp{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Exp", @$.first_line);
 		$$->addChild($1);
 		$$->addChild($2);
 		$$->addChild($3);
+		$$->setProductionNo(5);
 	}
 	| Exp STAR Exp{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Exp", @$.first_line);
 		$$->addChild($1);
 		$$->addChild($2);
 		$$->addChild($3);
+		$$->setProductionNo(6);
 	}
 	| Exp DIV Exp{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Exp", @$.first_line);
 		$$->addChild($1);
 		$$->addChild($2);
 		$$->addChild($3);
+		$$->setProductionNo(7);
 	}
 	| LP Exp RP{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Exp", @$.first_line);
 		$$->addChild($1);
 		$$->addChild($2);
 		$$->addChild($3);
+		$$->setProductionNo(8);
 	}
 	| MINUS Exp{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Exp", @$.first_line);
 		$$->addChild($1);
 		$$->addChild($2);
+		$$->setProductionNo(9);
 	}
 	| NOT Exp{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Exp", @$.first_line);
 		$$->addChild($1);
 		$$->addChild($2);
+		$$->setProductionNo(10);
 	}
 	| ID LP Args RP{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Exp", @$.first_line);
@@ -353,12 +398,14 @@ Exp	: Exp ASSIGNOP Exp{
 		$$->addChild($2);
 		$$->addChild($3);
 		$$->addChild($4);
+		$$->setProductionNo(11);
 	}
 	| ID LP RP{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Exp", @$.first_line);
 		$$->addChild($1);
 		$$->addChild($2);
 		$$->addChild($3);
+		$$->setProductionNo(12);
 	}
 	| Exp LB Exp RB{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Exp", @$.first_line);
@@ -366,24 +413,29 @@ Exp	: Exp ASSIGNOP Exp{
 		$$->addChild($2);
 		$$->addChild($3);
 		$$->addChild($4);
+		$$->setProductionNo(13);
 	}
 	| Exp DOT ID{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Exp", @$.first_line);
 		$$->addChild($1);
 		$$->addChild($2);
 		$$->addChild($3);
+		$$->setProductionNo(14);
 	}
 	| ID{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Exp", @$.first_line);
 		$$->addChild($1);
+		$$->setProductionNo(15);
 	}
 	| INT{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Exp", @$.first_line);
 		$$->addChild($1);
+		$$->setProductionNo(16);
 	}
 	| FLOAT{
 		$$ = new Node(NODE_TYPE_NON_TERMINAL, "Exp", @$.first_line);
 		$$->addChild($1);
+		$$->setProductionNo(17);
 	}
 	| Exp LB error RB{ syntaxErrorFlag = NEAR_END_ERROR; }
 	;
@@ -392,10 +444,12 @@ Args	: Exp COMMA Args{
 			$$->addChild($1);
 			$$->addChild($2);
 			$$->addChild($3);
+			$$->setProductionNo(0);
 		}
 	 	| Exp{
 			$$ = new Node(NODE_TYPE_NON_TERMINAL, "Args", @$.first_line);
 			$$->addChild($1);
+			$$->setProductionNo(1);
 		}
 		;
 
