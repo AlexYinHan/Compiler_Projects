@@ -49,6 +49,7 @@ public:
     int getIntValue();
     float getFloatValue();
     string getValue();
+    string getText();
     int getLineno(){ return this->lineno;}
     void setProductionNo(int no){ this->productionNo = no;}
     int getProductionNo(){ return this->productionNo;}

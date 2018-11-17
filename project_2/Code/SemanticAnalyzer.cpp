@@ -112,7 +112,7 @@ void SemanticAnalyzer::ExtDef(Node* node)
             Function function = FunDec(node->getChild(1), type);
             if(symbolTable.isDuplicatedName(function->name))
             {
-                cout << "Error type 16 at line" << node->getChild(1)->getLineno()
+                cout << "Error type 4 at line" << node->getChild(1)->getLineno()
                         << ":Redefined funtion \"" << function->name << "\"." << endl;
             }
             else
@@ -156,9 +156,9 @@ Type SemanticAnalyzer::Specifier(Node* node)
         case 0:
             //Specifier -> TYPE
             type->kind = BASIC;
-            if(node->getChild(0)->getValue().compare("int") == 0){
+            if(node->getChild(0)->getText().compare("int") == 0){
                 type->u.basic = INT;
-            } else if(node->getChild(0)->getValue().compare("float") == 0){
+            } else if(node->getChild(0)->getText().compare("float") == 0){
                 type->u.basic = FLOAT;
             } else {
                 return errorType;
@@ -229,7 +229,7 @@ string SemanticAnalyzer::OptTag(Node* node)
     else 
     {
         //OptTag -> ID
-        return node->getValue();
+        return node->getText();
     }
     
 }
@@ -238,7 +238,7 @@ string SemanticAnalyzer::Tag(Node* node)
 {
     showInfo(node);
     //Tag -> ID
-    return node->getValue();
+    return node->getText();
 }
 
 /* Declarators */
@@ -250,7 +250,7 @@ FieldList SemanticAnalyzer::VarDec(Node* node, Type type)
         case 0:
         {
             //VarDec -> ID
-            string name = node->getChild(0)->getValue();
+            string name = node->getChild(0)->getText();
             if(symbolTable.isDuplicatedName(name))
             {
                 cout << "Error type 3 at line" << node->getChild(0)->getLineno()
@@ -260,7 +260,7 @@ FieldList SemanticAnalyzer::VarDec(Node* node, Type type)
             else 
             {
                 FieldList varDec = new FieldList_();
-                varDec->name = node->getChild(0)->getValue();
+                varDec->name = node->getChild(0)->getText();
                 varDec->type = type;
                 varDec->tail = NULL;
                 symbolTable.addFieldList(varDec);
@@ -287,7 +287,7 @@ Function SemanticAnalyzer::FunDec(Node* node, Type retType)
 {
     showInfo(node);
     Function function = new Function_();
-    function->name = node->getChild(0)->getValue();
+    function->name = node->getChild(0)->getText();
     function->returnType = retType;
     function->returnType->assignType = RIGHT;
     if(node->getProductionNo() == 0)
@@ -538,8 +538,11 @@ Type SemanticAnalyzer::Exp(Node* node)
             }
             else
             {
-                cout << "Error type 7 at Line " << node->getChild(0)->getLineno()
-                        << ":Type mismatched for operands." << endl;
+                if(compareType(tLeft, tRight) == NOT_MATCH)
+                {
+                    cout << "Error type 7 at Line " << node->getChild(0)->getLineno()
+                            << ":Type mismatched for operands." << endl;
+                }
                 return errorType;
             }
         }
@@ -550,10 +553,13 @@ Type SemanticAnalyzer::Exp(Node* node)
         {
             //Exp -> MINUS Exp
             Type typeExp = Exp(node->getChild(1));
-            if(typeExp->kind != BASIC)
+            if(typeExp->kind != BASIC) 
             {
-                cout << "Error type 7 at Line " << node->getChild(0)->getLineno()
-                        << ":Type mismatched for operands." << endl;
+                if(typeExp->kind != ERROR) // don't consider error type as Error type 7
+                {
+                    cout << "Error type 7 at Line " << node->getChild(0)->getLineno()
+                            << ":Type mismatched for operands." << endl;
+                }
                 return errorType;
             }
             Type retType = new Type_();
@@ -568,8 +574,11 @@ Type SemanticAnalyzer::Exp(Node* node)
             Type typeExp = Exp(node->getChild(1));
             if(typeExp->kind != BASIC || typeExp->u.basic != INT)
             {
-                cout << "Error type 7 at Line " << node->getChild(0)->getLineno()
-                        << ":Type mismatched for operands." << endl;
+                if(typeExp->kind != ERROR) // don't consider error type as Error type 7
+                {
+                    cout << "Error type 7 at Line " << node->getChild(0)->getLineno()
+                            << ":Type mismatched for operands." << endl;
+                }
                 return errorType;
             }
             Type retType = new Type_();
@@ -584,18 +593,18 @@ Type SemanticAnalyzer::Exp(Node* node)
         {
             //Exp -> ID LP RP
             // case 11-12 share some same actions
-            TableItem *item = symbolTable.getItemByName(node->getChild(0)->getValue());
+            TableItem *item = symbolTable.getItemByName(node->getChild(0)->getText());
             Type function = item ? item->type : NULL;
             if(function == NULL)
             {
                 cout << "Error type 2 at Line " << node->getChild(0)->getLineno()
-                        << ":Undefined function \"" << node->getChild(0)->getValue() << "\"." << endl;
+                        << ":Undefined function \"" << node->getChild(0)->getText() << "\"." << endl;
                 return errorType;
             }
             if(function->kind != FUNCTION)
             {
                 cout << "Error type 11 at Line " << node->getChild(0)->getLineno()
-                        << ":\"" << node->getChild(0)->getValue() << "\" is not a function." << endl;
+                        << ":\"" << node->getChild(0)->getText() << "\" is not a function." << endl;
                 return errorType;
             }
             // if(function->u.function->isDefined)
@@ -609,7 +618,7 @@ Type SemanticAnalyzer::Exp(Node* node)
                 if(param != NULL)
                 {
                     cout << "Error type 9 at Line " << node->getChild(0)->getLineno()
-                        << ": Function \"" << node->getChild(0)->getValue() << "\" is not applicable for arguments." << endl;
+                        << ": Function \"" << node->getChild(0)->getText() << "\" is not applicable for arguments." << endl;
                     return errorType;
                 }
             }
@@ -619,7 +628,7 @@ Type SemanticAnalyzer::Exp(Node* node)
                 if(!Args(node->getChild(2), param))
                 {
                     cout << "Error type 9 at Line " << node->getChild(0)->getLineno()
-                        << ": Function \"" << node->getChild(0)->getValue() << "\" is not applicable for arguments." << endl;
+                        << ": Function \"" << node->getChild(0)->getText() << "\" is not applicable for arguments." << endl;
                     return errorType;
                 }
             }
@@ -636,14 +645,14 @@ Type SemanticAnalyzer::Exp(Node* node)
             if(arrayType->kind != ARRAY)
             {
                 cout << "Error type 10 at Line " << node->getChild(0)->getLineno()
-                        << ": \"" << node->getChild(0)->getValue() << "\" is not an array." << endl;
+                        << ": \"" << node->getChild(0)->getText() << "\" is not an array." << endl;
                 return errorType;
             }
             Type indexType = Exp(node->getChild(2));
             if(!(indexType->kind == BASIC && indexType->u.basic == INT))
             {
                 cout << "Error type 12 at Line " << node->getChild(0)->getLineno()
-                        << ": \"" << node->getChild(2)->getValue() << "\" is not an integer." << endl;
+                        << ": \"" << node->getChild(2)->getText() << "\" is not an integer." << endl;
                 return errorType;
             }
             Type retType = new Type_();
@@ -664,7 +673,7 @@ Type SemanticAnalyzer::Exp(Node* node)
             }
 
             // search for ID in this struct
-            string IDName = node->getChild(2)->getValue();
+            string IDName = node->getChild(2)->getText();
             FieldList itr = structType->u.structure->structureFieldList;
             while(itr)
             {
@@ -679,17 +688,17 @@ Type SemanticAnalyzer::Exp(Node* node)
                 itr = itr->tail;
             }
             cout << "Error type 14 at Line " << node->getChild(0)->getLineno()
-                        << ": Non-existent field  \"" << IDName << "\"" << endl;
+                        << ": Non-existent field  \"" << IDName << "\"." << endl;
             return errorType;
         }
         case 15:
         {
             //Exp -> ID
-            TableItem *IDItem = symbolTable.getItemByName(node->getChild(0)->getValue());
+            TableItem *IDItem = symbolTable.getItemByName(node->getChild(0)->getText());
             if(IDItem == NULL || IDItem->type == NULL)
             {
                 cout << "Error type 1 at Line " << node->getChild(0)->getLineno()
-                        << ": Undefined variable \"" << node->getChild(0)->getValue() << "\"" << endl;
+                        << ": Undefined variable \"" << node->getChild(0)->getText() << "\"" << endl;
                 return errorType;
             }
             return IDItem->type;

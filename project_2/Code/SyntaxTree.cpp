@@ -3,7 +3,7 @@
 /*
  * Constructor.
  * @param value
- *  For non-terminals, set to " ", because the value field is meaningless.
+ *  For non-terminals, set to "", because the value field is meaningless.
  *  For a termianl symbol, value is the actual text of it.
  */
 Node::Node(NodeType nodeType, string nodeName, int lineno)
@@ -11,7 +11,7 @@ Node::Node(NodeType nodeType, string nodeName, int lineno)
     this->nodeType = nodeType;
     this->nodeName = nodeName;
     this->lineno = lineno;
-    this->value = " "; // set default value;
+    this->value = ""; // set default value;
     this->father = NULL;
 }
 
@@ -74,6 +74,20 @@ float Node::getFloatValue()
 string Node::getValue()
 {
     return this->value;
+}
+
+/*
+ * Get actual text of a node.
+ * For non-terminal, traverse all its sub trees and join all the strings of terminals.
+ */
+string Node::getText()
+{
+    string s = this->value;
+    for (vector<Node*>::iterator it = this->children.begin(); it != this->children.end(); it ++)
+    {
+        s += (*it)->getText();
+    }
+    return s;
 }
 
 /*
