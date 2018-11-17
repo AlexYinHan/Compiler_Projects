@@ -1,10 +1,8 @@
 #ifndef _PARSE_COMMON_H
 #define _PARSE_COMMON_H
 
-#include <iostream>
 #include <stdlib.h>
 #include "SyntaxTree.h"
-using namespace std;
 
 
 /*

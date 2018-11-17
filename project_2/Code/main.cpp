@@ -1,3 +1,4 @@
+#include "common.h"
 #include "parseCommon.h"
 #include "SemanticAnalyzer.h"
 
@@ -22,7 +23,10 @@ int main(int argc, char** argv) {
 
 	if(lexErrorFlag == NO_LEX_ERROR && syntaxErrorFlag == NO_SYNTAX_ERROR)
 	{
-		// Node::printTree(treeRoot);
+		#ifdef DEBUG
+			Node::printTree(treeRoot);
+		#endif
+		
 		SemanticAnalyzer semanticAnalyzer;
 		semanticAnalyzer.analyse(treeRoot);
 	}

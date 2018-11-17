@@ -20,7 +20,7 @@ Digit [0-9]
 DigitSequence {Digit}+
 Sign [+-]
 NonzeroDigit [1-9]
-Letter [a-zA-zA]
+Letter [a-zA-Z]
 DecimalInteger 0|({NonzeroDigit}{Digit}*)
 OctalDigit [0-7]
 OctalInteger 0({OctalDigit}+)
@@ -30,7 +30,7 @@ UnsignedIntegerConstantLike [0-9][0-9a-zA-Z]*
 ExponentPart [eE]{Sign}?{DigitSequence}
 FractionalConstant ({DigitSequence}?\.{DigitSequence})|({DigitSequence}\.)
 DecimalFloatingConstant ({FractionalConstant}{ExponentPart}?)|({DigitSequence}{ExponentPart})
-FloatingConstantLike [0-9][0-9a-zA-Z+\-\.]*
+FloatingConstantLike [0-9][0-9a-zA-Z\+\-\.]*
 Relop >|<|>=|<=|==|!=
 Type int|float
 Identifier ({Letter}|_)({Letter}|{Digit}|_)*
