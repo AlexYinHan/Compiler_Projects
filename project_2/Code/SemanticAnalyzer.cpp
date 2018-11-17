@@ -32,13 +32,82 @@ bool SemanticAnalyzer::analyse(Node* treeRoot)
     return true;
 }
 
+/**************************** Tool Functions ***************************/
+/*
+ * List types of fields, separated by comma and a space.
+ */
+string SemanticAnalyzer::toString(FieldList fieldList)
+{
+    string s = "";
+    FieldList t = fieldList;
+    while(t)
+    {
+        s += toString(t->type);
+        t = t->tail;
+        if(t)
+        {
+            s += ", ";
+        }
+    }
+    return s;
+}
+/*
+ * Return a string representing a type.
+ * BASIC as int, float.
+ * STRUCTURE as struct id.
+ * FUNCTION as func id.
+ * ARRAY as type[][]...
+ * ERROR as error_type
+ */
+string SemanticAnalyzer::toString(Type type)
+{
+    if(type == NULL)
+    {
+        return "";
+    }
+    switch(type->kind)
+    {
+        case BASIC:
+            return type->u.basic == INT ? "int" : "float";
+        case STRUCTURE:
+            return "struct " + type->u.structure->name;
+        case FUNCTION:
+            return "func " + type->u.function->name;
+        case ARRAY:
+            return toString(type->u.array.elem) + "[" + to_string(type->u.array.size) + "]";
+        case ERROR:
+        default:
+            return "error_type";
+    }
+}
+
+/*
+ * Compare two fieldList to check if they match.
+ */
+bool SemanticAnalyzer::matchedFieldlist(FieldList f1, FieldList f2)
+{
+    if(f1 == NULL && f2 == NULL)
+    {
+        return true;
+    }
+    if(f1 == NULL || f2 == NULL)
+    {
+        return false;
+    }
+    if(compareType(f1->type, f2->type) == NOT_MATCH)
+    {
+        return false;
+    }
+    return matchedFieldlist(f1->tail, f2->tail);
+}
+
 /*
  * Compare two type to check if they match.
  * Return MATCH if the two match. 
  * (Not implemented) Return LEFT_SMALLER if t1 is 'smaller', which may lead to type conversion.
  * If either is NULL(possibly some error type is found), return NOT_SET.
  */
-int compareType(Type t1, Type t2)
+int SemanticAnalyzer::compareType(Type t1, Type t2)
 {
     if(t1 == NULL || t2 == NULL)
     {
@@ -69,9 +138,11 @@ int compareType(Type t1, Type t2)
     }
 }
 
-/****************** Semantic Actions *********************/
+/********************** End of Tool Functions *************************/
+
+/************************ Semantic Actions ****************************/
 //TODO: free space of Type_() for temporary types
-//TODO: use errorType
+//TODO: add variable type
 /* High-level Definitions */
 void SemanticAnalyzer::Program(Node* node)
 {
@@ -200,7 +271,6 @@ Type SemanticAnalyzer::StructSpecifier(Node* node)
         case 1:
         {
             //StructSpecifier -> STRUCT Tag
-            //TODO:search in table
             string tag = Tag(node->getChild(1));
             TableItem *item = symbolTable.getItemByName(tag);
             if(item == NULL || item->type == NULL || item->type->kind != STRUCTURE)
@@ -610,7 +680,6 @@ Type SemanticAnalyzer::Exp(Node* node)
             // if(function->u.function->isDefined)
 
             // check param types
-            //TODO: output specific info for params
             FieldList param = function->u.function->params;
             if(node->getProductionNo() == 12)
             {
@@ -625,12 +694,20 @@ Type SemanticAnalyzer::Exp(Node* node)
             else
             {
                 //Exp -> ID LP Args RP
-                if(!Args(node->getChild(2), param))
+                FieldList tmpArgs = Args(node->getChild(2));
+                if(!matchedFieldlist(tmpArgs, param))
                 {
                     cout << "Error type 9 at Line " << node->getChild(0)->getLineno()
-                        << ": Function \"" << node->getChild(0)->getText() << "\" is not applicable for arguments." << endl;
+                        << ": Function \"" << node->getChild(0)->getText() << "(" << toString(param) << ")"
+                        << "\" is not applicable for arguments \"(" << toString(tmpArgs) << ")\"." << endl;
+                    // tmpArgs won't be added to symbol table, delete it in time
+                    delete tmpArgs;
+                    tmpArgs = NULL;
                     return errorType;
                 }
+                // tmpArgs won't be added to symbol table, delete it in time
+                delete tmpArgs;
+                tmpArgs = NULL;
             }
             Type retType = new Type_();
             retType->kind = function->u.function->returnType->kind;
@@ -724,33 +801,18 @@ Type SemanticAnalyzer::Exp(Node* node)
     }
 }
 
-/*
- * List of real params.
- * As it's only called when parsing function call, do the type check in passing.
- * Return true if arguments and parametres match.
- */
-bool SemanticAnalyzer::Args(Node* node, FieldList param)
+FieldList SemanticAnalyzer::Args(Node* node)
 {
     showInfo(node);
+    FieldList args = new FieldList_();
 	//Exp
-    if(param == NULL)
-    {
-        // node couldn't be NULL
-        return false;
-    }
     Type expType = Exp(node->getChild(0));
-    if(compareType(expType, param->type) == NOT_MATCH)
-    {
-        return false;
-    }
+    args->type = expType;
     if(node->getProductionNo() == 0)
     {
         //Exp COMMA Args
-        return Args(node->getChild(2), param->tail);
+        args->tail = Args(node->getChild(2));
     }
-    else
-    {
-        return true;
-    }
+    return args;
 }
 

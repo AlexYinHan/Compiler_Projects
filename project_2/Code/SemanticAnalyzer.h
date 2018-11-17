@@ -9,13 +9,20 @@ class SemanticAnalyzer
 {
 private:
     SymbolTable symbolTable;
-
     const Type errorType = new Type_();
+
+    /**************************** Tool Functions ***************************/
+    string toString(FieldList fieldList);
+    string toString(Type type);
+    bool matchedFieldlist(FieldList f1, FieldList f2);
+    int compareType(Type t1, Type t2);
+    /************************* End of Tool Functions ***********************/
+    
 public:
     SemanticAnalyzer();
     bool analyse(Node* treeRoot);
 
-    /****************** Semantic Actions *********************/
+    /*************************** Semantic Actions **************************/
 
     /* High-level Definitions */
     void Program(Node* node);
@@ -48,9 +55,9 @@ public:
 
     /* Expressions */
     Type Exp(Node* node);
-    bool Args(Node* node, FieldList param);
+    FieldList Args(Node* node);
 
-    /**************** End of Semantic Actions ****************/
+    /*********************** End of Semantic Actions ***********************/
 };
 
 
