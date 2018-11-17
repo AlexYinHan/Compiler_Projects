@@ -8,6 +8,7 @@ SymbolTable::SymbolTable()
     }
 
     scopeDepth = 0;
+    scopeStack.push(COMMON);
 }
 
 SymbolTable::~SymbolTable()
@@ -131,9 +132,24 @@ bool SymbolTable::isDuplicatedNameInCurrentScope(string name)
 void SymbolTable::enterScope()
 {
     this->scopeDepth ++;
+    scopeStack.push(COMMON);
 }
+void SymbolTable::enterScope(ScopeType scopeType)
+{
+    this->scopeDepth ++;
+    scopeStack.push(scopeType);
+}
+ScopeType SymbolTable::getScopeType()
+{
+    return scopeStack.top();
+}
+
 void SymbolTable::exitScope()
 {
+    if(this->scopeDepth <= 0)
+    {
+        return;
+    }
     for(int i = 0; i < MAX_HASH_SIZE; i ++)
     {
         // delete items with depth of current scope
@@ -151,4 +167,5 @@ void SymbolTable::exitScope()
         hashTable[i] = t;
     }
     this->scopeDepth --;
+    scopeStack.pop();
 }

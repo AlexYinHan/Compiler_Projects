@@ -2,6 +2,7 @@
 #define _SYMBOLTABLE_H
 
 #include "common.h"
+#include <stack>
 
 /*
  * Define of Type
@@ -15,6 +16,7 @@ enum BasicType          { INT, FLOAT };
 enum TypeKind           { BASIC, ARRAY, STRUCTURE, FUNCTION, ERROR };
 enum TypeCompare        { MATCH, NOT_SET, NOT_MATCH, LEFT_SMALLER, RIGHT_SMALLER };
 enum AssignType         { LEFT, RIGHT };
+enum ScopeType          { COMMON, STRUCT };
 
 struct Type_
 {
@@ -79,7 +81,8 @@ class SymbolTable
 private:
     TableItem *hashTable[MAX_HASH_SIZE];
     int scopeDepth;
-
+    stack<ScopeType> scopeStack;
+    
     unsigned int hash(const char* name);
 public:
     SymbolTable();
@@ -94,6 +97,8 @@ public:
     bool isDuplicatedNameInCurrentScope(string name);
 
     void enterScope();
+    void enterScope(ScopeType scopeType);
     void exitScope();
+    ScopeType getScopeType();
 };
 #endif

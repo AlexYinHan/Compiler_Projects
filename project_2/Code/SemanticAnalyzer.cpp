@@ -266,6 +266,7 @@ void SemanticAnalyzer::ExtDef(Node* node)
             /* We don't want params in pure func declaration be put into symbol table.
                 To make it simple, assume this declaration has a nested scope, 
                 so the params will be added into table and be deleted right away.*/
+            // EnterScopeNote:
             symbolTable.enterScope();
             Function function = FunDec(node->getChild(1), type);
             symbolTable.exitScope();
@@ -282,7 +283,7 @@ void SemanticAnalyzer::ExtDef(Node* node)
         {
             // ExtDef -> Specifier FunDec CompSt
 
-            /* Params and var declarations happened in CompSt are in a nested scope.*/
+            /* EnterScopeNote: Params and var declarations happened in CompSt are in a nested scope.*/
             symbolTable.enterScope();
             Function function = FunDec(node->getChild(1), type);
             function->isDefined = true;
@@ -357,13 +358,17 @@ Type SemanticAnalyzer::StructSpecifier(Node* node)
             string structureName = OptTag(node->getChild(1));
             if(structureName.compare("") != 0 && symbolTable.isDuplicatedNameInCurrentScope(structureName))
             {
-                cout << "Error type 16 at line" << node->getChild(1)->getLineno()
-                        << ":Duplicated name \"" << structureName << "\"." << endl;
+                cout << "Error type 16 at line " << node->getChild(1)->getLineno()
+                        << ": Duplicated name \"" << structureName << "\"." << endl;
                 return errorType;
             }
             Structure structure = new Structure_();
             structure->name = structureName;
+
+            // EnterScopeNote: Var declarations in struct definition are in a scope.
+            symbolTable.enterScope(STRUCT);
             structure->structureFieldList = DefList(node->getChild(3));
+            symbolTable.exitScope();
 
             // for ananymous struct, simply add it to symbol table with name ""
             Type type = symbolTable.addStructureAndGetType(structure);
@@ -378,7 +383,7 @@ Type SemanticAnalyzer::StructSpecifier(Node* node)
             if(item == NULL || item->type == NULL || item->type->kind != STRUCTURE)
             {
                 cout << "Error type 17 at line " << node->getChild(1)->getLineno() 
-                    << ": Undefined structure \"" << tag << "\"" << endl;
+                    << ": Undefined structure \"" << tag << "\"." << endl;
                 return errorType;
             }
             else
@@ -425,8 +430,16 @@ FieldList SemanticAnalyzer::VarDec(Node* node, Type type)
             string name = node->getChild(0)->getText();
             if(symbolTable.isDuplicatedNameInCurrentScope(name))
             {
-                cout << "Error type 3 at line" << node->getChild(0)->getLineno()
-                        << ":Redefined variable \"" << name << "\"." << endl;
+                if(symbolTable.getScopeType() == STRUCT)
+                {   
+                    cout << "Error type 15 at line " << node->getChild(0)->getLineno()
+                        << ": Redefined field \"" << name << "\"." << endl;
+                }
+                else
+                {
+                    cout << "Error type 3 at line " << node->getChild(0)->getLineno()
+                            << ": Redefined variable \"" << name << "\"." << endl;
+                }
                 return NULL;
             }
             else 
@@ -536,7 +549,7 @@ void SemanticAnalyzer::Stmt(Node* node, Type retType)
             break;
         case 1:
             //Stmt -> CompSt
-            /* Var declrations in CompSt are in a nested scope.*/
+            /* EnterScopeNote: Var declrations in CompSt are in a nested scope.*/
             symbolTable.enterScope();
             CompSt(node->getChild(0), retType);
             symbolTable.exitScope();
@@ -548,7 +561,7 @@ void SemanticAnalyzer::Stmt(Node* node, Type retType)
             if(compareType(resultType, retType) == NOT_MATCH)
             {
                 cout << "Error type 8 at line" << node->getChild(1)->getLineno()
-                        << ":Type mismatched for return." << endl;
+                        << ": Type mismatched for return." << endl;
             }
             break;
         }
@@ -658,7 +671,7 @@ FieldList SemanticAnalyzer::Dec(Node* node, Type type)
     if(compareType(type, expType) == NOT_MATCH)
     {
         cout << "Error type 5 at Line " << node->getChild(1)->getLineno()
-                        << ":Type mismatched for assignment." << endl;
+                << ": Type mismatched for assignment." << endl;
         return NULL;
     }
     return varDec;
@@ -677,13 +690,13 @@ Type SemanticAnalyzer::Exp(Node* node)
             if(tLeft->assignType == RIGHT)
             {
                 cout << "Error type 6 at Line " << node->getChild(0)->getLineno()
-                        << ":The left-hand side of an assignment must be a variable." << endl;
+                        << ": The left-hand side of an assignment must be a variable." << endl;
                 return errorType;
             }
             if(compareType(tLeft, tRight) == NOT_MATCH)
             {
                 cout << "Error type 5 at Line " << node->getChild(0)->getLineno()
-                        << ":Type mismatched for assignment." << endl;
+                        << ": Type mismatched for assignment." << endl;
                 return errorType;
             }
             else
@@ -721,7 +734,7 @@ Type SemanticAnalyzer::Exp(Node* node)
                 if(compareType(tLeft, tRight) == NOT_MATCH)
                 {
                     cout << "Error type 7 at Line " << node->getChild(0)->getLineno()
-                            << ":Type mismatched for operands." << endl;
+                            << ": Type mismatched for operands." << endl;
                 }
                 return errorType;
             }
@@ -738,7 +751,7 @@ Type SemanticAnalyzer::Exp(Node* node)
                 if(typeExp->kind != ERROR) // don't consider error type as Error type 7
                 {
                     cout << "Error type 7 at Line " << node->getChild(0)->getLineno()
-                            << ":Type mismatched for operands." << endl;
+                            << ": Type mismatched for operands." << endl;
                 }
                 return errorType;
             }
@@ -757,7 +770,7 @@ Type SemanticAnalyzer::Exp(Node* node)
                 if(typeExp->kind != ERROR) // don't consider error type as Error type 7
                 {
                     cout << "Error type 7 at Line " << node->getChild(0)->getLineno()
-                            << ":Type mismatched for operands." << endl;
+                            << ": Type mismatched for operands." << endl;
                 }
                 return errorType;
             }
@@ -778,13 +791,13 @@ Type SemanticAnalyzer::Exp(Node* node)
             if(function == NULL)
             {
                 cout << "Error type 2 at Line " << node->getChild(0)->getLineno()
-                        << ":Undefined function \"" << node->getChild(0)->getText() << "\"." << endl;
+                        << ": Undefined function \"" << node->getChild(0)->getText() << "\"." << endl;
                 return errorType;
             }
             if(function->kind != FUNCTION)
             {
                 cout << "Error type 11 at Line " << node->getChild(0)->getLineno()
-                        << ":\"" << node->getChild(0)->getText() << "\" is not a function." << endl;
+                        << ": \"" << node->getChild(0)->getText() << "\" is not a function." << endl;
                 return errorType;
             }
             // if(function->u.function->isDefined)
@@ -885,7 +898,7 @@ Type SemanticAnalyzer::Exp(Node* node)
             if(IDItem == NULL || IDItem->type == NULL)
             {
                 cout << "Error type 1 at Line " << node->getChild(0)->getLineno()
-                        << ": Undefined variable \"" << node->getChild(0)->getText() << "\"" << endl;
+                        << ": Undefined variable \"" << node->getChild(0)->getText() << "\"." << endl;
                 return errorType;
             }
             return IDItem->type;
