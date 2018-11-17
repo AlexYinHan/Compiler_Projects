@@ -6,6 +6,8 @@ SymbolTable::SymbolTable()
     {
         hashTable[i] = NULL;
     }
+
+    scopeDepth = 0;
 }
 
 SymbolTable::~SymbolTable()
@@ -34,10 +36,12 @@ unsigned int SymbolTable::hash(const char *name)
 }
 
 /*
- * Add an item to the head of the list
+ * Add an item to the head of the list.
+ * Set item->scope to current depth of table.
  */
 void SymbolTable::addItem(TableItem *item)
 {
+    item->depth = this->scopeDepth;
     int hashValue = hash(item->name.c_str());
     item->next = hashTable[hashValue];
     hashTable[hashValue] = item;
@@ -101,7 +105,50 @@ TableItem* SymbolTable::getItemByName(string name)
     return p;
 }
 
+/*
+ * Check if an item with the same name exist in the whole table.
+ */
 bool SymbolTable::isDuplicatedName(string name)
 {
     return getItemByName(name) != NULL;
+}
+/*
+ * Check if an item with the same name exist in table.
+ * Return true if an item in current scope is found.
+ * As nesting function definition is not supported, this methond should not be called when checking for a function name.
+ */
+bool SymbolTable::isDuplicatedNameInCurrentScope(string name)
+{
+    TableItem* item = getItemByName(name);
+    return item != NULL && item->depth == this->scopeDepth;
+}
+
+/*
+ * Change current depth of table.
+ * Delete expired items when exit scope.
+ * Function definition and declaration is not affected by scope.
+ */
+void SymbolTable::enterScope()
+{
+    this->scopeDepth ++;
+}
+void SymbolTable::exitScope()
+{
+    for(int i = 0; i < MAX_HASH_SIZE; i ++)
+    {
+        // delete items with depth of current scope
+        TableItem *t = hashTable[i];
+        while(t)
+        {
+            if(t->depth < this->scopeDepth)
+            {
+                break;
+            }
+            TableItem *tmp = t;
+            t = t->next;
+            delete tmp;
+        }
+        hashTable[i] = t;
+    }
+    this->scopeDepth --;
 }

@@ -65,12 +65,12 @@ struct Function_
 /*
  * Declaration of SymbolTable
  */
-
 struct TableItem
 {
     string name;
     Type type;
     TableItem *next;
+    int depth;  // depth of nesting scope
 };
 
 #define MAX_HASH_SIZE 16384
@@ -78,6 +78,7 @@ class SymbolTable
 {
 private:
     TableItem *hashTable[MAX_HASH_SIZE];
+    int scopeDepth;
 
     unsigned int hash(const char* name);
 public:
@@ -90,5 +91,9 @@ public:
     Type addFunctionAndGetType(Function function);
     TableItem* getItemByName(string name);
     bool isDuplicatedName(string name);
+    bool isDuplicatedNameInCurrentScope(string name);
+
+    void enterScope();
+    void exitScope();
 };
 #endif

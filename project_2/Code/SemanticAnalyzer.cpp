@@ -253,10 +253,18 @@ void SemanticAnalyzer::ExtDef(Node* node)
         case 2:
         {
             // ExtDef -> Specifier FunDec SEMI
+
+            /* We don't want params in pure func declaration be put into symbol table.
+                To make it simple, assume this declaration has a nested scope, 
+                so the params will be added into table and be deleted right away.*/
+            symbolTable.enterScope();
             Function function = FunDec(node->getChild(1), type);
+            symbolTable.exitScope();
+
             function->isDefined = false;
 
-            // try to add function to symbol, and print messages if error is detected
+            // Try to add function to symbol, and print messages if error is detected
+            // The function itself is in the outer scope (than params scope).
             printAddFunctionResult(checkAndAddFunction(function), node->getChild(1)->getLineno(), function->name);
             
             return;
@@ -264,13 +272,18 @@ void SemanticAnalyzer::ExtDef(Node* node)
         case 3:
         {
             // ExtDef -> Specifier FunDec CompSt
+
+            /* Params and var declarations happened in CompSt are in a nested scope.*/
+            symbolTable.enterScope();
             Function function = FunDec(node->getChild(1), type);
             function->isDefined = true;
+            CompSt(node->getChild(2), type);
+            symbolTable.exitScope();
 
-            // try to add function to symbol, and print messages if error is detected
+            // Try to add function to symbol, and print messages if error is detected
+            // The function itself is in the outer scope (than params scope).
             printAddFunctionResult(checkAndAddFunction(function), node->getChild(1)->getLineno(), function->name);
             
-            CompSt(node->getChild(2), type);
             return;
         }  
         default: return;
@@ -333,7 +346,7 @@ Type SemanticAnalyzer::StructSpecifier(Node* node)
         {
             //StructSpecifier -> STRUCT OptTag LC DefList RC
             string structureName = OptTag(node->getChild(1));
-            if(structureName.compare("") != 0 && symbolTable.isDuplicatedName(structureName))
+            if(structureName.compare("") != 0 && symbolTable.isDuplicatedNameInCurrentScope(structureName))
             {
                 cout << "Error type 16 at line" << node->getChild(1)->getLineno()
                         << ":Duplicated name \"" << structureName << "\"." << endl;
@@ -401,7 +414,7 @@ FieldList SemanticAnalyzer::VarDec(Node* node, Type type)
         {
             //VarDec -> ID
             string name = node->getChild(0)->getText();
-            if(symbolTable.isDuplicatedName(name))
+            if(symbolTable.isDuplicatedNameInCurrentScope(name))
             {
                 cout << "Error type 3 at line" << node->getChild(0)->getLineno()
                         << ":Redefined variable \"" << name << "\"." << endl;
@@ -479,6 +492,11 @@ FieldList SemanticAnalyzer::ParamDec(Node* node)
 /* Statements */
 void SemanticAnalyzer::CompSt(Node* node, Type retType)
 {
+    /*
+     * Note: Don't enter and exit scope here.
+     * Write change scope code where CompSt appear on the right side of production.
+     * To make sure params in () like func(int p) or for(int i) are in the correct scope.
+     */
     showInfo(node);
     //CompSt -> LC DefList StmtList RC
     DefList(node->getChild(1));
@@ -509,7 +527,10 @@ void SemanticAnalyzer::Stmt(Node* node, Type retType)
             break;
         case 1:
             //Stmt -> CompSt
+            /* Var declrations in CompSt are in a nested scope.*/
+            symbolTable.enterScope();
             CompSt(node->getChild(0), retType);
+            symbolTable.exitScope();
             break;
         case 2:
         {
