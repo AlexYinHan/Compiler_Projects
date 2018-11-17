@@ -14,7 +14,7 @@ LFC = $(shell find ./ -name "*.l" | sed s/[^/]*\\.l/lex.yy.c/)
 YFC = $(shell find ./ -name "*.y" | sed s/[^/]*\\.y/syntax.tab.c/)
 LFO = $(LFC:.c=.o)
 YFO = $(YFC:.c=.o)
-TESTFILES = $(shell find ../Test -name "*.cmm" | sort)
+TESTFILES = $(shell find ../Test -name "*.cmm" | sort -t "/" -k 3 -n)
 
 parser: syntax $(CFILES)
 	$(CC) $(CPPFILES) $(CFILES) -lfl -ly -o ../parser
