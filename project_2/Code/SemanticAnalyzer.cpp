@@ -21,15 +21,19 @@ SemanticAnalyzer::SemanticAnalyzer()
 }
 /*
  * Traver through the syntax tree to check for semantic errors.
- * Return true if no semantic error is found.
  * @param treeRoot
  *  root of syntax tree, passed by syntax analyzer
  */
-bool SemanticAnalyzer::analyse(Node* treeRoot)
+void SemanticAnalyzer::analyse(Node* treeRoot)
 {
     symbolTable.clearTable();
     Program(treeRoot);
-    return true;
+    checkUndefinedFunctions();
+}
+
+bool SemanticAnalyzer::functionAllDefined()
+{
+    return symbolTable.functionAllDefined();
 }
 
 /**************************** Tool Functions ***************************/
@@ -192,6 +196,51 @@ AddFunctionResult SemanticAnalyzer::checkAndAddFunction(Function function)
     }
 }
 
+void SemanticAnalyzer::dealWithAddFunctionResult(AddFunctionResult result, int lineno, Function function)
+{
+    switch(result)
+    {
+        case REDIFINED:
+            cout << "Error type 4 at line " << lineno
+                    << ": Redefined function \"" << function->name << "\"." << endl;
+            return;
+        case DIFFERENT_KIND:
+            cout << "Error type 19 at line " << lineno
+                    << ": \"" << function->name << "\" redeclared as different kind of symbol." << endl;
+            return;
+        case INCONSISTENT_DECLARE:
+            cout << "Error type 19 at line " << lineno
+                    << ": Inconsistent declaration of function \"" << function->name << "\"." << endl;
+            return;
+        case INCONSISTENT_DEFINE:
+            cout << "Error type 19 at line " << lineno
+                    << ": Inconsistent definition of function \"" << function->name << "\"." << endl;
+            return;
+
+        // results without error
+        case NEW_ITEM_ADDED:
+        case CONSISTENT_DECLARE:
+        case NEWLY_DEFINED:
+            FunDecRecord record;
+            record.lineno = lineno;
+            record.function = function;
+            symbolTable.funDecRecords.push_back(record);
+        default: return;
+    }
+}
+
+void SemanticAnalyzer::checkUndefinedFunctions()
+{
+    for (list<FunDecRecord>::iterator it = symbolTable.funDecRecords.begin(); it != symbolTable.funDecRecords.end(); it ++)
+    {
+        if(!(*it).function->isDefined)
+        {
+            cout << "Error type 18 at line " << (*it).lineno 
+                << ": Undefined function \"" << (*it).function->name << "\"." << endl;
+        }
+    }
+}
+
 /********************** End of Tool Functions *************************/
 
 /************************ Semantic Actions ****************************/
@@ -218,34 +267,6 @@ void SemanticAnalyzer::ExtDefList(Node* node)
     ExtDefList(node->getChild(1));
 }
 
-void printAddFunctionResult(AddFunctionResult result, int lineno, string functionName)
-{
-    switch(result)
-    {
-        case REDIFINED:
-            cout << "Error type 4 at line" << lineno
-                    << ": Redefined function \"" << functionName << "\"." << endl;
-            return;
-        case DIFFERENT_KIND:
-            cout << "Error type 19 at line" << lineno
-                    << ": \"" << functionName << "\" redeclared as different kind of symbol." << endl;
-            return;
-        case INCONSISTENT_DECLARE:
-            cout << "Error type 19 at line" << lineno
-                    << ": Inconsistent declaration of function \"" << functionName << "\"." << endl;
-            return;
-        case INCONSISTENT_DEFINE:
-            cout << "Error type 19 at line" << lineno
-                    << ": Inconsistent definition of function \"" << functionName << "\"." << endl;
-            return;
-
-        // results without error
-        case NEW_ITEM_ADDED:
-        case CONSISTENT_DECLARE:
-        case NEWLY_DEFINED:
-        default: return;
-    }
-}
 void SemanticAnalyzer::ExtDef(Node* node)
 {
     showInfo(node);
@@ -275,7 +296,7 @@ void SemanticAnalyzer::ExtDef(Node* node)
 
             // Try to add function to symbol, and print messages if error is detected
             // The function itself is in the outer scope (than params scope).
-            printAddFunctionResult(checkAndAddFunction(function), node->getChild(1)->getLineno(), function->name);
+            dealWithAddFunctionResult(checkAndAddFunction(function), node->getChild(1)->getLineno(), function);
             
             return;
         }
@@ -292,7 +313,7 @@ void SemanticAnalyzer::ExtDef(Node* node)
 
             // Try to add function to symbol, and print messages if error is detected
             // The function itself is in the outer scope (than params scope).
-            printAddFunctionResult(checkAndAddFunction(function), node->getChild(1)->getLineno(), function->name);
+            dealWithAddFunctionResult(checkAndAddFunction(function), node->getChild(1)->getLineno(), function);
             
             return;
         }  

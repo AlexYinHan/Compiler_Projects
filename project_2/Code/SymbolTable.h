@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include <stack>
+#include <list>
 
 /*
  * Define of Type
@@ -64,6 +65,13 @@ struct Function_
     FieldList params;
 };
 
+// record a declaration of a function
+struct FunDecRecord
+{
+    int lineno;
+    Function function;
+};
+
 /*
  * Declaration of SymbolTable
  */
@@ -84,7 +92,10 @@ private:
     stack<ScopeType> scopeStack;
     
     unsigned int hash(const char* name);
+    
 public:
+    list<FunDecRecord> funDecRecords;
+
     SymbolTable();
     ~SymbolTable();
     void clearTable();
@@ -100,5 +111,8 @@ public:
     void enterScope(ScopeType scopeType);
     void exitScope();
     ScopeType getScopeType();
+
+    bool functionAllDefined();
+
 };
 #endif

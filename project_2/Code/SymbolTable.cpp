@@ -169,3 +169,20 @@ void SymbolTable::exitScope()
     this->scopeDepth --;
     scopeStack.pop();
 }
+
+bool SymbolTable::functionAllDefined()
+{
+   for(int i = 0; i < MAX_HASH_SIZE; i ++)
+    {
+        TableItem *t = hashTable[i];
+        while(t)
+        {
+            if(t->type->kind == FUNCTION && !t->type->u.function->isDefined)
+            {
+                return false;
+            }
+            t = t->next;
+        }
+    } 
+    return true;
+}

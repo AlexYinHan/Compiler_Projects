@@ -23,11 +23,14 @@ private:
     bool matchedStructure(Structure s1, Structure s2);
     int compareType(Type t1, Type t2);
     AddFunctionResult checkAndAddFunction(Function function);
+    void dealWithAddFunctionResult(AddFunctionResult result, int lineno, Function function);
+    void checkUndefinedFunctions();
     /************************* End of Tool Functions ***********************/
     
 public:
     SemanticAnalyzer();
-    bool analyse(Node* treeRoot);
+    void analyse(Node* treeRoot);
+    bool functionAllDefined();
 
     /*************************** Semantic Actions **************************/
 
