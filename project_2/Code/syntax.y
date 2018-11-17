@@ -95,12 +95,19 @@ ExtDef	: Specifier ExtDecList SEMI{
 			$$->addChild($2);
 			$$->setProductionNo(1);
 		}
+		| Specifier FunDec SEMI{
+			$$ = new Node(NODE_TYPE_NON_TERMINAL, "ExtDef", @$.first_line);
+			$$->addChild($1);
+			$$->addChild($2);
+			$$->addChild($3);
+			$$->setProductionNo(2);
+		}
 		| Specifier FunDec CompSt{
 	   		$$ = new Node(NODE_TYPE_NON_TERMINAL, "ExtDef", @$.first_line);
 			$$->addChild($1);
 			$$->addChild($2);
 			$$->addChild($3);
-			$$->setProductionNo(2);
+			$$->setProductionNo(3);
 		}
 		| error SEMI { syntaxErrorFlag = NEAR_END_ERROR; }
 		;

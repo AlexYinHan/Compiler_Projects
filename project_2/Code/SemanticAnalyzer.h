@@ -5,6 +5,11 @@
 #include "SyntaxTree.h"
 #include "SymbolTable.h"
 
+
+enum AddFunctionResult   { NEW_ITEM_ADDED, DIFFERENT_KIND, REDIFINED, 
+                            CONSISTENT_DECLARE, INCONSISTENT_DECLARE,
+                            NEWLY_DEFINED, INCONSISTENT_DEFINE};
+
 class SemanticAnalyzer
 {
 private:
@@ -16,6 +21,7 @@ private:
     string toString(Type type);
     bool matchedFieldlist(FieldList f1, FieldList f2);
     int compareType(Type t1, Type t2);
+    AddFunctionResult checkAndAddFunction(Function function);
     /************************* End of Tool Functions ***********************/
     
 public:

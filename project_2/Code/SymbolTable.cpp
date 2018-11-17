@@ -86,6 +86,7 @@ Type SymbolTable::addFunctionAndGetType(Function function)
     return item->type;
 }
 
+
 TableItem* SymbolTable::getItemByName(string name)
 {
     int hashValue = hash(name.c_str());

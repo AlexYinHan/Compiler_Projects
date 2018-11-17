@@ -138,6 +138,51 @@ int SemanticAnalyzer::compareType(Type t1, Type t2)
     }
 }
 
+/*
+ * Check if it's ok to add a function.
+ */
+AddFunctionResult SemanticAnalyzer::checkAndAddFunction(Function function)
+{
+    TableItem *item = symbolTable.getItemByName(function->name);
+    if(item == NULL)
+    {
+        // add a new item to symbol table.
+        symbolTable.addFunctionAndGetType(function);
+        return NEW_ITEM_ADDED;
+    }
+    if(item->type->kind != FUNCTION)
+    {
+        // redeclared as different kind symbol.
+        return DIFFERENT_KIND;
+    }
+    Function functionInTable = item->type->u.function;
+    bool consistent = matchedFieldlist(function->params, functionInTable->params) && 
+                        compareType(function->returnType, functionInTable->returnType) == MATCH;
+    if(function->isDefined)
+    {
+        if(functionInTable->isDefined)
+        {
+            return REDIFINED;
+        }
+        else
+        {
+            if(consistent)
+            {
+                functionInTable->isDefined = true;
+                return NEWLY_DEFINED;
+            }
+            else
+            {
+                return INCONSISTENT_DEFINE;
+            }
+        }
+    }
+    else
+    {
+        return consistent ? CONSISTENT_DECLARE : INCONSISTENT_DECLARE;
+    }
+}
+
 /********************** End of Tool Functions *************************/
 
 /************************ Semantic Actions ****************************/
@@ -164,6 +209,34 @@ void SemanticAnalyzer::ExtDefList(Node* node)
     ExtDefList(node->getChild(1));
 }
 
+void printAddFunctionResult(AddFunctionResult result, int lineno, string functionName)
+{
+    switch(result)
+    {
+        case REDIFINED:
+            cout << "Error type 4 at line" << lineno
+                    << ": Redefined function \"" << functionName << "\"." << endl;
+            return;
+        case DIFFERENT_KIND:
+            cout << "Error type 19 at line" << lineno
+                    << ": \"" << functionName << "\" redeclared as different kind of symbol." << endl;
+            return;
+        case INCONSISTENT_DECLARE:
+            cout << "Error type 19 at line" << lineno
+                    << ": Inconsistent declaration of function \"" << functionName << "\"." << endl;
+            return;
+        case INCONSISTENT_DEFINE:
+            cout << "Error type 19 at line" << lineno
+                    << ": Inconsistent definition of function \"" << functionName << "\"." << endl;
+            return;
+
+        // results without error
+        case NEW_ITEM_ADDED:
+        case CONSISTENT_DECLARE:
+        case NEWLY_DEFINED:
+        default: return;
+    }
+}
 void SemanticAnalyzer::ExtDef(Node* node)
 {
     showInfo(node);
@@ -173,25 +246,32 @@ void SemanticAnalyzer::ExtDef(Node* node)
         case 0:
             // ExtDef -> Specifier ExtDecList SEMI
             ExtDecList(node->getChild(1), type);
-            break;
+            return;
         case 1:
             // ExtDef -> Specifier SEMI
             return;
         case 2:
         {
+            // ExtDef -> Specifier FunDec SEMI
+            Function function = FunDec(node->getChild(1), type);
+            function->isDefined = false;
+
+            // try to add function to symbol, and print messages if error is detected
+            printAddFunctionResult(checkAndAddFunction(function), node->getChild(1)->getLineno(), function->name);
+            
+            return;
+        }
+        case 3:
+        {
             // ExtDef -> Specifier FunDec CompSt
             Function function = FunDec(node->getChild(1), type);
-            if(symbolTable.isDuplicatedName(function->name))
-            {
-                cout << "Error type 4 at line" << node->getChild(1)->getLineno()
-                        << ":Redefined funtion \"" << function->name << "\"." << endl;
-            }
-            else
-            {
-                symbolTable.addFunctionAndGetType(function);
-            }
+            function->isDefined = true;
+
+            // try to add function to symbol, and print messages if error is detected
+            printAddFunctionResult(checkAndAddFunction(function), node->getChild(1)->getLineno(), function->name);
+            
             CompSt(node->getChild(2), type);
-            break;
+            return;
         }  
         default: return;
     }

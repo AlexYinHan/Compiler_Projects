@@ -11,10 +11,10 @@ typedef struct FieldList_* FieldList;
 typedef struct Structure_* Structure;
 typedef struct Function_* Function;
 
-enum BasicType      { INT, FLOAT };
-enum TypeKind       { BASIC, ARRAY, STRUCTURE, FUNCTION, ERROR };
-enum TypeCompare    { MATCH, NOT_SET, NOT_MATCH, LEFT_SMALLER, RIGHT_SMALLER };
-enum AssignType     { LEFT, RIGHT };
+enum BasicType          { INT, FLOAT };
+enum TypeKind           { BASIC, ARRAY, STRUCTURE, FUNCTION, ERROR };
+enum TypeCompare        { MATCH, NOT_SET, NOT_MATCH, LEFT_SMALLER, RIGHT_SMALLER };
+enum AssignType         { LEFT, RIGHT };
 
 struct Type_
 {
@@ -57,7 +57,7 @@ struct Function_
 {
     string name;
     // int paramNum;
-    // bool isDefined;
+    bool isDefined;
     Type returnType;
     FieldList params;
 };
