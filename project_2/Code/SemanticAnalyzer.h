@@ -20,6 +20,7 @@ private:
     string toString(FieldList fieldList);
     string toString(Type type);
     bool matchedFieldlist(FieldList f1, FieldList f2);
+    bool matchedStructure(Structure s1, Structure s2);
     int compareType(Type t1, Type t2);
     AddFunctionResult checkAndAddFunction(Function function);
     /************************* End of Tool Functions ***********************/

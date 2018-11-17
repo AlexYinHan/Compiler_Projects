@@ -130,12 +130,21 @@ int SemanticAnalyzer::compareType(Type t1, Type t2)
             return compareType(t1->u.array.elem, t2->u.array.elem);
         case STRUCTURE:
             // Simply check for name now
-            return t1->u.structure->name.compare(t2->u.structure->name) == 0 ? MATCH : NOT_MATCH;
+            return matchedStructure(t1->u.structure, t2->u.structure) ? MATCH : NOT_MATCH;
         case FUNCTION:
-            // Simply check for name now
+            // It shouldn't really happend where we need to compare two functions in this method.
+            // Simply check for name now.
             return t1->u.function->name.compare(t2->u.function->name) == 0 ? MATCH : NOT_MATCH;
         default: return NOT_SET;
     }
+}
+
+/*
+ * Return true if the two share the same field types, regardless of the names.
+ */
+bool SemanticAnalyzer::matchedStructure(Structure s1, Structure s2)
+{
+    return matchedFieldlist(s1->structureFieldList, s2->structureFieldList);
 }
 
 /*
