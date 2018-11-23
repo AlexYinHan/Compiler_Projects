@@ -11,14 +11,33 @@ SymbolTable::SymbolTable()
     scopeStack.push(COMMON);
 }
 
+void deleteType(Type type)
+{
+    //TODO:delete type
+}
+void deleteItem(TableItem *item)
+{
+    //TODO:delete item
+}
 SymbolTable::~SymbolTable()
 {
-    //TODO:return space
+    //free spaces in heap
+    clearTable();
 }
 
 void SymbolTable::clearTable()
 {
-    //TODO:clear table
+    //clear table
+    for(int i = 0; i < MAX_HASH_SIZE; i ++)
+    {
+        TableItem *p = hashTable[i];
+        while(p)
+        {
+            TableItem *tmp = p;
+            p = p->next;
+            deleteItem(p);
+        }
+    }
 }
 
 unsigned int hashPJW(const char *name)

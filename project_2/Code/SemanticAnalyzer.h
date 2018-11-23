@@ -6,7 +6,7 @@
 #include "SymbolTable.h"
 
 
-enum AddFunctionResult   { NEW_ITEM_ADDED, DIFFERENT_KIND, REDIFINED, 
+enum AddFunctionResult   { NEW_ITEM_ADDED, DIFFERENT_KIND, REDEFINED, 
                             CONSISTENT_DECLARE, INCONSISTENT_DECLARE,
                             NEWLY_DEFINED, INCONSISTENT_DEFINE};
 
@@ -21,7 +21,7 @@ private:
     string toString(Type type);
     bool matchedFieldlist(FieldList f1, FieldList f2);
     bool matchedStructure(Structure s1, Structure s2);
-    int compareType(Type t1, Type t2);
+    TypeCompare compareType(Type t1, Type t2);
     AddFunctionResult checkAndAddFunction(Function function);
     void dealWithAddFunctionResult(AddFunctionResult result, int lineno, Function function);
     void checkUndefinedFunctions();

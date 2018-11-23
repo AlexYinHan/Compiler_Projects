@@ -111,7 +111,7 @@ bool SemanticAnalyzer::matchedFieldlist(FieldList f1, FieldList f2)
  * (Not implemented) Return LEFT_SMALLER if t1 is 'smaller', which may lead to type conversion.
  * If either is NULL(possibly some error type is found), return NOT_SET.
  */
-int SemanticAnalyzer::compareType(Type t1, Type t2)
+TypeCompare SemanticAnalyzer::compareType(Type t1, Type t2)
 {
     if(t1 == NULL || t2 == NULL)
     {
@@ -175,7 +175,7 @@ AddFunctionResult SemanticAnalyzer::checkAndAddFunction(Function function)
     {
         if(functionInTable->isDefined)
         {
-            return REDIFINED;
+            return REDEFINED;
         }
         else
         {
@@ -200,7 +200,7 @@ void SemanticAnalyzer::dealWithAddFunctionResult(AddFunctionResult result, int l
 {
     switch(result)
     {
-        case REDIFINED:
+        case REDEFINED:
             cout << "Error type 4 at line " << lineno
                     << ": Redefined function \"" << function->name << "\"." << endl;
             return;
