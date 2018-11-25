@@ -17,7 +17,7 @@ YFO = $(YFC:.c=.o)
 TESTFILES = $(shell find ../Test -name "*.cmm" | sort -t "/" -k 3 -n)
 
 parser: syntax $(CFILES)
-	$(CC) $(CPPFILES) $(CFILES) -lfl -ly -o ../parser
+	$(CC) $(CPPFILES) $(CFILES) -lfl -ly -o ./parser
 
 syntax: lexical syntax-c
 	$(CC) -c $(YFC) -o $(YFO)
@@ -37,7 +37,7 @@ test:
 		do \
 			echo ; \
 			echo $$name; \
-			../parser $$name; \
+			./parser $$name; \
 		done 
 clean:
 	rm -f parser lex.yy.c syntax.tab.c syntax.tab.h syntax.output
