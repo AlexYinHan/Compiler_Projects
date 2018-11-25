@@ -581,7 +581,7 @@ void SemanticAnalyzer::Stmt(Node* node, Type retType)
             Type resultType = Exp(node->getChild(1));
             if(compareType(resultType, retType) == NOT_MATCH)
             {
-                cout << "Error type 8 at line" << node->getChild(1)->getLineno()
+                cout << "Error type 8 at line " << node->getChild(1)->getLineno()
                         << ": Type mismatched for return." << endl;
             }
             break;
@@ -889,7 +889,7 @@ Type SemanticAnalyzer::Exp(Node* node)
             if(structType->kind != STRUCTURE)
             {
                 cout << "Error type 13 at Line " << node->getChild(0)->getLineno()
-                        << ": Illegal use of \".\"" << endl;
+                        << ": Illegal use of \".\"." << endl;
                 return errorType;
             }
 
@@ -909,7 +909,7 @@ Type SemanticAnalyzer::Exp(Node* node)
                 itr = itr->tail;
             }
             cout << "Error type 14 at Line " << node->getChild(0)->getLineno()
-                        << ": Non-existent field  \"" << IDName << "\"." << endl;
+                        << ": Non-existent field \"" << IDName << "\"." << endl;
             return errorType;
         }
         case 15:
