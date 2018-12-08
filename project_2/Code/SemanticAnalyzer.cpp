@@ -219,12 +219,21 @@ void SemanticAnalyzer::dealWithAddFunctionResult(AddFunctionResult result, int l
 
         // results without error
         case NEW_ITEM_ADDED:
-        case CONSISTENT_DECLARE:
-        case NEWLY_DEFINED:
+        {
             FunDecRecord record;
             record.lineno = lineno;
             record.function = function;
             symbolTable.funDecRecords.push_back(record);
+            return;
+        }
+        case CONSISTENT_DECLARE:
+        case NEWLY_DEFINED:
+        {
+            FunDecRecord record;
+            record.lineno = lineno;
+            record.function = symbolTable.getItemByName(function->name)->type->u.function; // function in table
+            symbolTable.funDecRecords.push_back(record);
+        }
         default: return;
     }
 }

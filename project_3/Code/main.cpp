@@ -28,7 +28,13 @@ int main(int argc, char** argv) {
 		#endif
 		
 		SemanticAnalyzer semanticAnalyzer;
+		semanticAnalyzer.getSymbolTable()->setSupportNestedScope(false); // nested scope not supported for inter code yet
 		semanticAnalyzer.analyse(treeRoot);
+		if(semanticAnalyzer.getSemanticErrorFlag() == NO_SEMANTIC_ERROR)
+		{
+			InterCodeTranslater IRT(semanticAnalyzer.getSymbolTable());
+			IRT.translate(treeRoot);
+		}
 	}
 
 	Node::deleteTree(treeRoot);

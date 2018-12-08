@@ -4,17 +4,21 @@
 #include "common.h"
 #include "SyntaxTree.h"
 #include "SymbolTable.h"
+#include "InterCode.h"
 
 
-enum AddFunctionResult   { NEW_ITEM_ADDED, DIFFERENT_KIND, REDEFINED, 
+enum AddFunctionResult  {   NEW_DEC_ADDED, NEW_DEF_ADDED, DIFFERENT_KIND, REDEFINED, 
                             CONSISTENT_DECLARE, INCONSISTENT_DECLARE,
                             NEWLY_DEFINED, INCONSISTENT_DEFINE};
+enum SemanticErrorFlag  {   NO_SEMANTIC_ERROR, SEMANTIC_ERROR};
 
 class SemanticAnalyzer
 {
 private:
+    SemanticErrorFlag semanticErrorFlag;
     SymbolTable symbolTable;
     const Type errorType = new Type_();
+    list<InterCode> interCodeList;
 
     /**************************** Tool Functions ***************************/
     string toString(FieldList fieldList);
@@ -29,8 +33,10 @@ private:
     
 public:
     SemanticAnalyzer();
+    SemanticErrorFlag getSemanticErrorFlag();
     void analyse(Node* treeRoot);
     bool functionAllDefined();
+    SymbolTable* getSymbolTable();
 
     /*************************** Semantic Actions **************************/
 

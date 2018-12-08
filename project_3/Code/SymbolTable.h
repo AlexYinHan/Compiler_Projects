@@ -88,6 +88,7 @@ class SymbolTable
 {
 private:
     TableItem *hashTable[MAX_HASH_SIZE];
+    bool supportNestedScope;
     int scopeDepth;
     stack<ScopeType> scopeStack;
     
@@ -98,6 +99,7 @@ public:
 
     SymbolTable();
     ~SymbolTable();
+    void setSupportNestedScope(bool support);
     void clearTable();
     void addItem(TableItem *item);
     void addFieldList(FieldList fieldList);

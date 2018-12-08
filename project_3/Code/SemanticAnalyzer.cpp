@@ -1,7 +1,7 @@
 #include "SemanticAnalyzer.h"
 
 // #define DEBUG
-void showInfo(Node *node)
+static void showInfo(Node *node)
 {
 #ifdef DEBUG
     if(node == NULL)
@@ -19,6 +19,13 @@ SemanticAnalyzer::SemanticAnalyzer()
 {
     errorType->kind = ERROR;
 }
+
+SemanticErrorFlag SemanticAnalyzer::getSemanticErrorFlag()
+{
+    return this->semanticErrorFlag;
+}
+
+
 /*
  * Traver through the syntax tree to check for semantic errors.
  * @param treeRoot
@@ -27,6 +34,7 @@ SemanticAnalyzer::SemanticAnalyzer()
 void SemanticAnalyzer::analyse(Node* treeRoot)
 {
     symbolTable.clearTable();
+    this->semanticErrorFlag = NO_SEMANTIC_ERROR;
     Program(treeRoot);
     checkUndefinedFunctions();
 }
@@ -161,7 +169,7 @@ AddFunctionResult SemanticAnalyzer::checkAndAddFunction(Function function)
     {
         // add a new item to symbol table.
         symbolTable.addFunctionAndGetType(function);
-        return NEW_ITEM_ADDED;
+        return function->isDefined ? NEW_DEF_ADDED : NEW_DEC_ADDED;
     }
     if(item->type->kind != FUNCTION)
     {
@@ -203,28 +211,42 @@ void SemanticAnalyzer::dealWithAddFunctionResult(AddFunctionResult result, int l
         case REDEFINED:
             cout << "Error type 4 at line " << lineno
                     << ": Redefined function \"" << function->name << "\"." << endl;
+            this->semanticErrorFlag = SEMANTIC_ERROR;
             return;
         case DIFFERENT_KIND:
             cout << "Error type 19 at line " << lineno
                     << ": \"" << function->name << "\" redeclared as different kind of symbol." << endl;
+            this->semanticErrorFlag = SEMANTIC_ERROR;
             return;
         case INCONSISTENT_DECLARE:
             cout << "Error type 19 at line " << lineno
                     << ": Inconsistent declaration of function \"" << function->name << "\"." << endl;
+            this->semanticErrorFlag = SEMANTIC_ERROR;
             return;
         case INCONSISTENT_DEFINE:
             cout << "Error type 19 at line " << lineno
                     << ": Inconsistent definition of function \"" << function->name << "\"." << endl;
+            this->semanticErrorFlag = SEMANTIC_ERROR;
             return;
 
         // results without error
-        case NEW_ITEM_ADDED:
-        case CONSISTENT_DECLARE:
-        case NEWLY_DEFINED:
+        case NEW_DEF_ADDED:
+        case NEW_DEC_ADDED:
+        {
             FunDecRecord record;
             record.lineno = lineno;
             record.function = function;
             symbolTable.funDecRecords.push_back(record);
+            return;
+        }
+        case CONSISTENT_DECLARE:
+        case NEWLY_DEFINED:
+        {
+            FunDecRecord record;
+            record.lineno = lineno;
+            record.function = symbolTable.getItemByName(function->name)->type->u.function; // function in table
+            symbolTable.funDecRecords.push_back(record);
+        }
         default: return;
     }
 }
@@ -237,8 +259,14 @@ void SemanticAnalyzer::checkUndefinedFunctions()
         {
             cout << "Error type 18 at line " << (*it).lineno 
                 << ": Undefined function \"" << (*it).function->name << "\"." << endl;
+            this->semanticErrorFlag = SEMANTIC_ERROR;
         }
     }
+}
+
+SymbolTable* SemanticAnalyzer::getSymbolTable()
+{
+    return &(this->symbolTable);
 }
 
 /********************** End of Tool Functions *************************/
@@ -290,14 +318,14 @@ void SemanticAnalyzer::ExtDef(Node* node)
             // EnterScopeNote:
             symbolTable.enterScope();
             Function function = FunDec(node->getChild(1), type);
-            symbolTable.exitScope();
-
             function->isDefined = false;
-
             // Try to add function to symbol, and print messages if error is detected
             // The function itself is in the outer scope (than params scope).
+            // Write the below code inside this scope so that recursive call is supported;
             dealWithAddFunctionResult(checkAndAddFunction(function), node->getChild(1)->getLineno(), function);
             
+            symbolTable.exitScope();
+
             return;
         }
         case 3:
@@ -308,13 +336,13 @@ void SemanticAnalyzer::ExtDef(Node* node)
             symbolTable.enterScope();
             Function function = FunDec(node->getChild(1), type);
             function->isDefined = true;
-            CompSt(node->getChild(2), type);
-            symbolTable.exitScope();
-
             // Try to add function to symbol, and print messages if error is detected
             // The function itself is in the outer scope (than params scope).
+            // Write the below code inside this scope so that recursive call is supported;
             dealWithAddFunctionResult(checkAndAddFunction(function), node->getChild(1)->getLineno(), function);
-            
+            CompSt(node->getChild(2), type);
+            symbolTable.exitScope();
+        
             return;
         }  
         default: return;
@@ -381,6 +409,7 @@ Type SemanticAnalyzer::StructSpecifier(Node* node)
             {
                 cout << "Error type 16 at line " << node->getChild(1)->getLineno()
                         << ": Duplicated name \"" << structureName << "\"." << endl;
+                this->semanticErrorFlag = SEMANTIC_ERROR;
                 return errorType;
             }
             Structure structure = new Structure_();
@@ -405,6 +434,7 @@ Type SemanticAnalyzer::StructSpecifier(Node* node)
             {
                 cout << "Error type 17 at line " << node->getChild(1)->getLineno() 
                     << ": Undefined structure \"" << tag << "\"." << endl;
+                this->semanticErrorFlag = SEMANTIC_ERROR;
                 return errorType;
             }
             else
@@ -461,6 +491,7 @@ FieldList SemanticAnalyzer::VarDec(Node* node, Type type)
                     cout << "Error type 3 at line " << node->getChild(0)->getLineno()
                             << ": Redefined variable \"" << name << "\"." << endl;
                 }
+                this->semanticErrorFlag = SEMANTIC_ERROR;
                 return NULL;
             }
             else 
@@ -583,6 +614,7 @@ void SemanticAnalyzer::Stmt(Node* node, Type retType)
             {
                 cout << "Error type 8 at line " << node->getChild(1)->getLineno()
                         << ": Type mismatched for return." << endl;
+                this->semanticErrorFlag = SEMANTIC_ERROR;
             }
             break;
         }
@@ -693,6 +725,7 @@ FieldList SemanticAnalyzer::Dec(Node* node, Type type)
     {
         cout << "Error type 5 at Line " << node->getChild(1)->getLineno()
                 << ": Type mismatched for assignment." << endl;
+        this->semanticErrorFlag = SEMANTIC_ERROR;
         return NULL;
     }
     return varDec;
@@ -712,12 +745,14 @@ Type SemanticAnalyzer::Exp(Node* node)
             {
                 cout << "Error type 6 at Line " << node->getChild(0)->getLineno()
                         << ": The left-hand side of an assignment must be a variable." << endl;
+                this->semanticErrorFlag = SEMANTIC_ERROR;
                 return errorType;
             }
             if(compareType(tLeft, tRight) == NOT_MATCH)
             {
                 cout << "Error type 5 at Line " << node->getChild(0)->getLineno()
                         << ": Type mismatched for assignment." << endl;
+                this->semanticErrorFlag = SEMANTIC_ERROR;
                 return errorType;
             }
             else
@@ -756,6 +791,7 @@ Type SemanticAnalyzer::Exp(Node* node)
                 {
                     cout << "Error type 7 at Line " << node->getChild(0)->getLineno()
                             << ": Type mismatched for operands." << endl;
+                    this->semanticErrorFlag = SEMANTIC_ERROR;
                 }
                 return errorType;
             }
@@ -773,6 +809,7 @@ Type SemanticAnalyzer::Exp(Node* node)
                 {
                     cout << "Error type 7 at Line " << node->getChild(0)->getLineno()
                             << ": Type mismatched for operands." << endl;
+                    this->semanticErrorFlag = SEMANTIC_ERROR;
                 }
                 return errorType;
             }
@@ -792,6 +829,7 @@ Type SemanticAnalyzer::Exp(Node* node)
                 {
                     cout << "Error type 7 at Line " << node->getChild(0)->getLineno()
                             << ": Type mismatched for operands." << endl;
+                    this->semanticErrorFlag = SEMANTIC_ERROR;
                 }
                 return errorType;
             }
@@ -807,18 +845,25 @@ Type SemanticAnalyzer::Exp(Node* node)
         {
             //Exp -> ID LP RP
             // case 11-12 share some same actions
-            TableItem *item = symbolTable.getItemByName(node->getChild(0)->getText());
+            string functionName = node->getChild(0)->getText();
+            TableItem *item = symbolTable.getItemByName(functionName);
             Type function = item ? item->type : NULL;
             if(function == NULL)
             {
-                cout << "Error type 2 at Line " << node->getChild(0)->getLineno()
-                        << ": Undefined function \"" << node->getChild(0)->getText() << "\"." << endl;
+                if(!(functionName.compare("read") == 0 || functionName.compare("write") == 0))
+                {
+                    cout << "Error type 2 at Line " << node->getChild(0)->getLineno()
+                            << ": Undefined function \"" << node->getChild(0)->getText() << "\"." << endl;
+                    this->semanticErrorFlag = SEMANTIC_ERROR;
+                }
+                 // read and write have no return type, treated as errorType
                 return errorType;
             }
             if(function->kind != FUNCTION)
             {
                 cout << "Error type 11 at Line " << node->getChild(0)->getLineno()
                         << ": \"" << node->getChild(0)->getText() << "\" is not a function." << endl;
+                this->semanticErrorFlag = SEMANTIC_ERROR;
                 return errorType;
             }
             // if(function->u.function->isDefined)
@@ -832,6 +877,7 @@ Type SemanticAnalyzer::Exp(Node* node)
                 {
                     cout << "Error type 9 at Line " << node->getChild(0)->getLineno()
                         << ": Function \"" << node->getChild(0)->getText() << "\" is not applicable for arguments." << endl;
+                    this->semanticErrorFlag = SEMANTIC_ERROR;
                     return errorType;
                 }
             }
@@ -844,6 +890,7 @@ Type SemanticAnalyzer::Exp(Node* node)
                     cout << "Error type 9 at Line " << node->getChild(0)->getLineno()
                         << ": Function \"" << node->getChild(0)->getText() << "(" << toString(param) << ")"
                         << "\" is not applicable for arguments \"(" << toString(tmpArgs) << ")\"." << endl;
+                    this->semanticErrorFlag = SEMANTIC_ERROR;
                     // tmpArgs won't be added to symbol table, delete it in time
                     delete tmpArgs;
                     tmpArgs = NULL;
@@ -867,6 +914,7 @@ Type SemanticAnalyzer::Exp(Node* node)
             {
                 cout << "Error type 10 at Line " << node->getChild(0)->getLineno()
                         << ": \"" << node->getChild(0)->getText() << "\" is not an array." << endl;
+                this->semanticErrorFlag = SEMANTIC_ERROR;
                 return errorType;
             }
             Type indexType = Exp(node->getChild(2));
@@ -874,6 +922,7 @@ Type SemanticAnalyzer::Exp(Node* node)
             {
                 cout << "Error type 12 at Line " << node->getChild(0)->getLineno()
                         << ": \"" << node->getChild(2)->getText() << "\" is not an integer." << endl;
+                this->semanticErrorFlag = SEMANTIC_ERROR;
                 return errorType;
             }
             Type retType = new Type_();
@@ -890,6 +939,7 @@ Type SemanticAnalyzer::Exp(Node* node)
             {
                 cout << "Error type 13 at Line " << node->getChild(0)->getLineno()
                         << ": Illegal use of \".\"." << endl;
+                this->semanticErrorFlag = SEMANTIC_ERROR;
                 return errorType;
             }
 
@@ -910,6 +960,7 @@ Type SemanticAnalyzer::Exp(Node* node)
             }
             cout << "Error type 14 at Line " << node->getChild(0)->getLineno()
                         << ": Non-existent field \"" << IDName << "\"." << endl;
+            this->semanticErrorFlag = SEMANTIC_ERROR;
             return errorType;
         }
         case 15:
@@ -920,6 +971,7 @@ Type SemanticAnalyzer::Exp(Node* node)
             {
                 cout << "Error type 1 at Line " << node->getChild(0)->getLineno()
                         << ": Undefined variable \"" << node->getChild(0)->getText() << "\"." << endl;
+                this->semanticErrorFlag = SEMANTIC_ERROR;
                 return errorType;
             }
             return IDItem->type;

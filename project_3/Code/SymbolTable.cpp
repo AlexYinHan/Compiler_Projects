@@ -9,6 +9,7 @@ SymbolTable::SymbolTable()
 
     scopeDepth = 0;
     scopeStack.push(COMMON);
+    supportNestedScope = true;
 }
 
 void deleteType(Type type)
@@ -25,6 +26,10 @@ SymbolTable::~SymbolTable()
     clearTable();
 }
 
+void SymbolTable::setSupportNestedScope(bool support)
+{
+    this->supportNestedScope = support;
+}
 void SymbolTable::clearTable()
 {
     //clear table
@@ -61,10 +66,35 @@ unsigned int SymbolTable::hash(const char *name)
  */
 void SymbolTable::addItem(TableItem *item)
 {
-    item->depth = this->scopeDepth;
-    int hashValue = hash(item->name.c_str());
-    item->next = hashTable[hashValue];
-    hashTable[hashValue] = item;
+    if(item->type->kind == FUNCTION)
+    {
+        // nested function not supported
+        // all functions will be added to the outmost scope.
+        item->depth = 0;
+        int hashValue = hash(item->name.c_str());
+        TableItem *p = hashTable[hashValue];
+        // add this new function item to the tail
+        if(p == NULL)
+        {
+            item->next = NULL;
+            hashTable[hashValue] = item;
+        }
+        else
+        {
+            while(p->next)
+            {
+                p = p->next;
+            }
+            p->next = item;
+        }
+    }
+    else
+    {
+        item->depth = this->scopeDepth;
+        int hashValue = hash(item->name.c_str());
+        item->next = hashTable[hashValue];
+        hashTable[hashValue] = item;
+    }
 }
 
 void SymbolTable::addFieldList(FieldList fieldList)
@@ -150,11 +180,21 @@ bool SymbolTable::isDuplicatedNameInCurrentScope(string name)
  */
 void SymbolTable::enterScope()
 {
+    if(!supportNestedScope)
+    {
+        return;
+    }
+    // cout << "enter scope" << endl;
     this->scopeDepth ++;
     scopeStack.push(COMMON);
 }
 void SymbolTable::enterScope(ScopeType scopeType)
 {
+    if(!supportNestedScope)
+    {
+        return;
+    }
+    // cout << "enter scope 2" << endl;
     this->scopeDepth ++;
     scopeStack.push(scopeType);
 }
@@ -165,6 +205,11 @@ ScopeType SymbolTable::getScopeType()
 
 void SymbolTable::exitScope()
 {
+    if(!supportNestedScope)
+    {
+        return;
+    }
+    // cout << "exit scope" << endl;
     if(this->scopeDepth <= 0)
     {
         return;
