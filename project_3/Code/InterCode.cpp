@@ -109,12 +109,27 @@ void InterCodeTranslater::translate(Node* treeRoot)
 
 void InterCodeTranslater::output()
 {
-
+    list<InterCode>::iterator it;
+    for(it = interCodeList.begin(); it != interCodeList.end(); it ++)
+    {
+        cout << toString(*it) << endl;
+    }
 }
 
 void InterCodeTranslater::output(string filename)
 {
-    
+    ofstream file;
+    file.open(filename);
+    if(!file.is_open())
+    {
+        return;
+    }
+    list<InterCode>::iterator it;
+    for(it = interCodeList.begin(); it != interCodeList.end(); it ++)
+    {
+        file << toString(*it) << endl;
+    }
+    file.close();
 }
 
 /**************************** Tool Functions ***************************/
@@ -154,9 +169,119 @@ int InterCodeTranslater::sizeOfType(Type type)
 
 void InterCodeTranslater::deleteInvalidCodes()
 {
-    //TODO: delete codes with null operands
+    //delete codes with null operands
+    list<InterCode>::iterator it;
+    for(it = interCodeList.begin(); it != interCodeList.end();)
+    {
+        bool invalid = false;
+        switch((*it)->kind)
+        {
+            case PARAM:case RETURN:case ARG:case READ:case WRITE:case LABEL_DEC:case GOTO:
+                invalid = ((*it)->u.sinop.op == NULL);
+                break;
+            case ASSIGN:
+                invalid = ((*it)->u.assign.left == NULL || (*it)->u.assign.right == NULL);
+                break;
+            case ADD:case SUB:case MUL:case DIV:
+                invalid = ((*it)->u.binop.result == NULL || (*it)->u.binop.op1 == NULL || (*it)->u.binop.op2 == NULL);
+                break;
+            case DEC:
+                invalid = ((*it)->u.dec.tableItem_p == NULL);
+                break;
+            case ASSIGN_CALL:
+                invalid = ((*it)->u.assign_call.function == NULL || (*it)->u.assign_call.result == NULL);
+                break;
+            case COND_GOTO:
+                invalid = ((*it)->u.condGoto == NULL);
+                break;
+            case FUNC_DEF:
+                invalid = ((*it)->u.function == NULL);
+                break;
+            default: break;
+        }
+        if(invalid){
+            interCodeList.erase(it++);
+        } else {
+            it ++;
+        }
+    }
 }
 
+string InterCodeTranslater::toString(Operand operand)
+{
+    if(operand == NULL)
+    {
+        return "null operand";
+    }
+
+// cout << "operand" << operand->kind << endl;
+    switch(operand->kind)
+    {
+        case VARIABLE:
+            return operand->u.tableItem_p->name;
+        case CONSTANT:
+            return "#" + to_string(operand->u.int_const);
+        case TMP:
+            return "t" + to_string(operand->u.tmp_no);
+        case LABEL:
+            return "label" + to_string(operand->u.label_no);
+        case ADDRESS:
+            return "&" + toString(operand->u.operand);
+        case DEREFER:
+            return "*" + toString(operand->u.operand);
+        default:
+            return "unrecognized operand";
+    }
+}
+string InterCodeTranslater::toString(InterCode interCode)
+{
+// cout << "code" << interCode->kind << endl;
+    switch(interCode->kind)
+    {
+        case PARAM:
+            return "PARAM " + toString(interCode->u.sinop.op);
+        case RETURN:
+            return "RETURN " + toString(interCode->u.sinop.op);
+        case ARG:
+            return "ARG " + toString(interCode->u.sinop.op);
+        case READ:
+            return "READ " + toString(interCode->u.sinop.op);
+        case WRITE:
+            return "WRITE " + toString(interCode->u.sinop.op);
+        case LABEL_DEC:
+            return "LABEL " + toString(interCode->u.sinop.op) + ": ";
+        case GOTO:
+            return "GOTO " + toString(interCode->u.sinop.op);
+        case ASSIGN:
+            return toString(interCode->u.assign.left) + " := " + toString(interCode->u.assign.right);
+        case ADD:
+            return toString(interCode->u.binop.result) + " := " 
+                    + toString(interCode->u.binop.op1) + " + " + toString(interCode->u.binop.op2);
+        case SUB:
+            return toString(interCode->u.binop.result) + " := " 
+                    + toString(interCode->u.binop.op1) + " - " + toString(interCode->u.binop.op2);
+        case MUL:
+            return toString(interCode->u.binop.result) + " := " 
+                    + toString(interCode->u.binop.op1) + " * " + toString(interCode->u.binop.op2);
+        case DIV:
+            return toString(interCode->u.binop.result) + " := " 
+                    + toString(interCode->u.binop.op1) + " / " + toString(interCode->u.binop.op2);
+        case DEC:
+            return "DEC " + interCode->u.dec.tableItem_p->name + " [" + to_string(interCode->u.dec.size) + "]";
+        case ASSIGN_CALL:
+            return toString(interCode->u.assign_call.result) + " := CALL " + interCode->u.assign_call.function->name; 
+        case COND_GOTO:
+            return "IF " + 
+                toString(interCode->u.condGoto->x) + 
+                " " + interCode->u.condGoto->relop + " " + 
+                toString(interCode->u.condGoto->y) + 
+                " GOTO " + 
+                toString(interCode->u.condGoto->label);
+        case FUNC_DEF:
+            return "FUNCTION " + interCode->u.function->name + " :";
+        default: return "unrecognized code";
+    }
+}
 /************************* End of Tool Functions ***********************/
 /*************************** Semantic Actions **************************/
 
@@ -205,13 +330,12 @@ void InterCodeTranslater::ExtDef(Node* node)
             // ExtDef -> Specifier FunDec CompSt
             Function function = FunDec(node->getChild(1));
 
-            // MARK: InterCode - FUNCTION f :
-            InterCode code = new InterCode_(FUNC_DEF, new IRFunction_(function->name)); // code - FUNCTION f :
+            InterCode code = new InterCode_(FUNC_DEF, new IRFunction_(function->name));         // code - FUNCTION f :
             interCodeList.push_back(code);
             FieldList param = function->params;
             while(param)
             {
-                Operand op = new Operand_(VARIABLE, symbolTable->getItemByName(param->name)); // code - PARAM v
+                Operand op = new Operand_(VARIABLE, symbolTable->getItemByName(param->name));   // code - PARAM v
                 InterCode paramCode = new InterCode_(PARAM, op);
                 interCodeList.push_back(paramCode);
                 param = param->tail;
@@ -439,6 +563,7 @@ void InterCodeTranslater::Def(Node* node)
 	showInfo(node);
     //Def -> Specifier DecList SEMI
     Specifier(node->getChild(0));
+    DecList(node->getChild(1));
 }
 
 void InterCodeTranslater::DecList(Node* node)
@@ -544,11 +669,11 @@ ExpResult InterCodeTranslater::Exp(Node* node, Operand place)
         case 0:
         {
             //Exp -> Exp ASSIGNOP Exp
-            // MARK: InterCode - Exp1 ASSIGNOP Exp2
             Operand t1 = new Operand_(TMP);
             Exp(node->getChild(2), t1);                                 // code1
             ExpResult expResult = Exp(node->getChild(0), place);        // code2.2
             Operand leftOperand = expResult.operand;
+cout << "-----" << toString(leftOperand) << toString(t1) << endl;
             InterCode code = new InterCode_(ASSIGN, leftOperand, t1);   // code2.1
             interCodeList.insert(--interCodeList.end(), code);          // insert code2.1 before code2.2      
             return expResult;
@@ -624,7 +749,7 @@ ExpResult InterCodeTranslater::Exp(Node* node, Operand place)
         {
             //Exp -> LP Exp RP
             ExpResult expResult = Exp(node->getChild(1), place);
-            return makeExpResult(expResult.type, place);
+            return makeExpResult(expResult.type, expResult.operand);
         }
         case 9:
         {
@@ -652,6 +777,7 @@ ExpResult InterCodeTranslater::Exp(Node* node, Operand place)
                 list<Operand>::iterator it;
                 for(it = arg_list.begin(); it != arg_list.end(); ++it)
                 {
+cout << "----" << toString(*it) << endl;
                     InterCode code2 = new InterCode_(ARG, *it);                     // code 2 - [ARG args[i]]
                     interCodeList.push_back(code2);
                 }
@@ -697,7 +823,7 @@ ExpResult InterCodeTranslater::Exp(Node* node, Operand place)
             interCodeList.push_back(code2);
             interCodeList.push_back(code3);
             interCodeList.push_back(code4);
-            return makeExpResult(expResult.type, place);
+            return makeExpResult(expResult.type, t3);
         }
         case 14:
         {
@@ -731,7 +857,7 @@ ExpResult InterCodeTranslater::Exp(Node* node, Operand place)
                                 place, new Operand_(DEREFER, t3));          // code3 - place := *t3
             interCodeList.push_back(code3);
 
-            return makeExpResult(elemType, place);
+            return makeExpResult(elemType, t3);
         }
         case 15:
         {
@@ -740,7 +866,7 @@ ExpResult InterCodeTranslater::Exp(Node* node, Operand place)
             Operand right = new Operand_(VARIABLE, IDItem);
             InterCode code = new InterCode_(ASSIGN, place, right); // code - [place := variable.name]
             interCodeList.push_back(code);
-            return makeExpResult(IDItem->type, place);
+            return makeExpResult(IDItem->type, right);
         }
         case 16:
         {    
@@ -752,7 +878,7 @@ ExpResult InterCodeTranslater::Exp(Node* node, Operand place)
             type->kind = BASIC;
             type->u.basic = INT;
             type->assignType = RIGHT;
-            return makeExpResult(type, place);
+            return makeExpResult(type, right);
         }
         case 17:
         {
@@ -768,12 +894,13 @@ ExpResult InterCodeTranslater::Exp(Node* node, Operand place)
     }
 }
 
-void InterCodeTranslater::Args(Node* node, list<Operand> arg_list)
+void InterCodeTranslater::Args(Node* node, list<Operand>& arg_list)
 {
 	showInfo(node);
 	//Exp
     Operand t1 = new Operand_(TMP);
     Exp(node->getChild(0), t1);             // code 1
+cout << "-----push arg" << endl;
     arg_list.push_front(t1);
     if(node->getProductionNo() == 0)
     {

@@ -34,6 +34,14 @@ int main(int argc, char** argv) {
 		{
 			InterCodeTranslater IRT(semanticAnalyzer.getSymbolTable());
 			IRT.translate(treeRoot);
+			if(argc >= 3)
+			{
+				IRT.output(argv[2]);
+			}
+			else
+			{
+				IRT.output();
+			}
 		}
 	}
 

@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include <list>
+#include <fstream>
 #include "SyntaxTree.h"
 #include "SymbolTable.h"
 
@@ -10,7 +11,7 @@ enum OperandKind    {   VARIABLE, TMP, CONSTANT, ADDRESS, DEREFER, LABEL };
 enum InterCodeKind  {   ASSIGN, DEC, 
                         ADD, SUB, MUL, DIV, 
                         FUNC_DEF, PARAM, RETURN, ARG, READ, WRITE, 
-                        CALL, ASSIGN_CALL, 
+                        ASSIGN_CALL, 
                         LABEL_DEC, GOTO, COND_GOTO };
 
 typedef struct Operand_*    Operand;
@@ -28,7 +29,7 @@ struct Operand_
         int int_const;          // CONSTANT
         int tmp_no;             // TMP
         int label_no;           // LABEL
-        Operand operand;       // ADDRESS, DEREFER
+        Operand operand;        // ADDRESS, DEREFER
     } u;
 
     // Constructors
@@ -45,11 +46,11 @@ struct InterCode_
     {
         struct {Operand op;} sinop;                        // PARAM, RETURN, ARG, READ, WRITE, LABEL_DEC, GOTO
         struct {Operand left, right;} assign;                       // ASSIGN
-        struct {Operand result, op1, op2;} binop;                   // ADD, SUM, MUL, DIV
+        struct {Operand result, op1, op2;} binop;                   // ADD, SUB, MUL, DIV
         struct {TableItem* tableItem_p; int size;} dec;             // DEC
         struct {Operand result; IRFunction function;} assign_call;  // ASSIGN_CALL
         IRCondGoto condGoto;                                        // COND_GOTO
-        IRFunction function;                                        // FUNC_DEF, CALL
+        IRFunction function;                                        // FUNC_DEF
     } u;
 
     // Constructors
@@ -110,6 +111,8 @@ private:
         r.operand = operand;
         return r;
     }
+    string toString(Operand operand);
+    string toString(InterCode interCode);
     /************************* End of Tool Functions ***********************/
 
 public:
@@ -154,7 +157,7 @@ public:
     /* Expressions */
     ExpResult translateCond(Node* node, Operand label1, Operand label2);
     ExpResult Exp(Node* node, Operand place);
-    void Args(Node* node, list<Operand> arg_list);
+    void Args(Node* node, list<Operand>& arg_list);
 
     /*********************** End of Semantic Actions ***********************/
 };
