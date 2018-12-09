@@ -356,11 +356,11 @@ void SemanticAnalyzer::ExtDecList(Node* node, Type type)
     {
         case 0:
             //ExtDecList -> VarDec
-            VarDec(node->getChild(0), type);
+            VarDec(node->getChild(0), type, false);
             break;
         case 1:
 	        //ExtDecList -> VarDec COMMA ExtDecList
-            VarDec(node->getChild(0), type);
+            VarDec(node->getChild(0), type, false);
             ExtDecList(node->getChild(1), type);
             break;
         default: return;
@@ -470,7 +470,7 @@ string SemanticAnalyzer::Tag(Node* node)
 }
 
 /* Declarators */
-FieldList SemanticAnalyzer::VarDec(Node* node, Type type)
+FieldList SemanticAnalyzer::VarDec(Node* node, Type type, bool fromParam)
 {
     showInfo(node);
     switch(node->getProductionNo())
@@ -500,7 +500,15 @@ FieldList SemanticAnalyzer::VarDec(Node* node, Type type)
                 varDec->name = node->getChild(0)->getText();
                 varDec->type = type;
                 varDec->tail = NULL;
-                symbolTable.addFieldList(varDec);
+                // for array/struct parameter, its address is passed, so the symbol is actually a pointer 
+                if(fromParam && (type->kind == ARRAY || type->kind == STRUCTURE))
+                {
+                    symbolTable.addFieldList(varDec, true);
+                }
+                else
+                {
+                    symbolTable.addFieldList(varDec, false);
+                }
                 return varDec;
             }
             break;
@@ -513,7 +521,7 @@ FieldList SemanticAnalyzer::VarDec(Node* node, Type type)
             varDec->kind = ARRAY;
             varDec->u.array.size = node->getChild(2)->getIntValue();
             varDec->u.array.elem = type;
-            return VarDec(node->getChild(0), varDec);
+            return VarDec(node->getChild(0), varDec, fromParam);
             break;
         }
         default: return NULL;
@@ -559,7 +567,7 @@ FieldList SemanticAnalyzer::ParamDec(Node* node)
     showInfo(node);
     //ParamDec -> Specifier VarDec
     Type type = Specifier(node->getChild(0));
-    FieldList varDec = VarDec(node->getChild(1), type);
+    FieldList varDec = VarDec(node->getChild(1), type, true);
     return varDec;
 }
 
@@ -713,7 +721,7 @@ FieldList SemanticAnalyzer::DecList(Node* node, Type type)
 FieldList SemanticAnalyzer::Dec(Node* node, Type type)
 {
     showInfo(node);
-    FieldList varDec = VarDec(node->getChild(0), type);
+    FieldList varDec = VarDec(node->getChild(0), type, false);
     if(node->getProductionNo() == 0)
     {
         //Dec -> VarDec

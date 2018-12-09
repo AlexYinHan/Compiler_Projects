@@ -53,7 +53,7 @@ public:
     string Tag(Node* node);
 
     /* Declarators */
-    FieldList VarDec(Node* node, Type type);
+    FieldList VarDec(Node* node, Type type, bool fromParam);
     Function FunDec(Node* node, Type retType);
     FieldList VarList(Node* node);
     FieldList ParamDec(Node* node);

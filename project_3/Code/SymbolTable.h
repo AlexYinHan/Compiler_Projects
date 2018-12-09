@@ -80,7 +80,13 @@ struct TableItem
     string name;
     Type type;
     TableItem *next;
-    int depth;  // depth of nesting scope
+    int depth;      // depth of nesting scope
+    /*
+     * Pointer type actually not supported, use this field just to make array/struct params work properly.
+     * Defaultly set to false.
+     * Only set true when it's a array/struct param in ParamDec.
+     */
+    bool isPointer; 
 };
 
 #define MAX_HASH_SIZE 16384
@@ -103,6 +109,7 @@ public:
     void clearTable();
     void addItem(TableItem *item);
     void addFieldList(FieldList fieldList);
+    void addFieldList(FieldList fieldList, bool isPointer);
     Type addStructureAndGetType(Structure structure);
     Type addFunctionAndGetType(Function function);
     TableItem* getItemByName(string name);

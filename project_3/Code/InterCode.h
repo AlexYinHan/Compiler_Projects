@@ -92,6 +92,12 @@ struct ExpResult
 {
     Type type;
     Operand operand;
+    /*
+     * Pointer type actually not supported, use this field just to make array/struct params work properly.
+     * Defaultly set to false.
+     * Only set true when it's a array/struct param in ParamDec.
+     */
+    bool isPointer;
 };
 
 class InterCodeTranslater
@@ -104,11 +110,12 @@ private:
     /**************************** Tool Functions ***************************/
     int sizeOfType(Type type);
     void deleteInvalidCodes();
-    ExpResult makeExpResult(const Type type, Operand operand)
+    ExpResult makeExpResult(const Type type, Operand operand, bool isPointer)
     {
         ExpResult r;
         r.type = type;
         r.operand = operand;
+        r.isPointer = isPointer;
         return r;
     }
     string toString(Operand operand);

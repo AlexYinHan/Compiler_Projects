@@ -249,7 +249,7 @@ string InterCodeTranslater::toString(InterCode interCode)
         case WRITE:
             return "WRITE " + toString(interCode->u.sinop.op);
         case LABEL_DEC:
-            return "LABEL " + toString(interCode->u.sinop.op) + ": ";
+            return "LABEL " + toString(interCode->u.sinop.op) + " : ";
         case GOTO:
             return "GOTO " + toString(interCode->u.sinop.op);
         case ASSIGN:
@@ -267,7 +267,7 @@ string InterCodeTranslater::toString(InterCode interCode)
             return toString(interCode->u.binop.result) + " := " 
                     + toString(interCode->u.binop.op1) + " / " + toString(interCode->u.binop.op2);
         case DEC:
-            return "DEC " + interCode->u.dec.tableItem_p->name + " [" + to_string(interCode->u.dec.size) + "]";
+            return "DEC " + interCode->u.dec.tableItem_p->name + " " + to_string(interCode->u.dec.size);
         case ASSIGN_CALL:
             return toString(interCode->u.assign_call.result) + " := CALL " + interCode->u.assign_call.function->name; 
         case COND_GOTO:
@@ -399,14 +399,20 @@ void InterCodeTranslater::VarDec(Node* node)
             //VarDec -> ID
             string name = node->getChild(0)->getText();
             TableItem *varItem = symbolTable->getItemByName(name);
+cout << "-----402" << endl;
             if(varItem != NULL && (varItem->type->kind == ARRAY || varItem->type->kind == STRUCTURE))
             {
+
+cout << "-----" << varItem->name << sizeOfType(varItem->type) << endl;
                 InterCode code = new InterCode_(DEC, 
                                         varItem, sizeOfType(varItem->type)); // code - DEC x [size]
                 interCodeList.push_back(code);
             }
+            return;
         }
-        case 1: //VarDec -> VarDec LB INT RB
+        case 1: 
+            //VarDec -> VarDec LB INT RB
+            VarDec(node->getChild(0));
         default: return;
     }
 }
@@ -597,7 +603,7 @@ void InterCodeTranslater::Dec(Node* node)
         Operand var = new Operand_(VARIABLE, IDItem);
         Exp(node->getChild(2), var);     // code - var := e
     }
-    // Dec -> VarDec ASSIGNOP Exp
+    // Dec -> arrayElem ASSIGNOP Exp
     // got no idea how this shit could be translated
 }
 
@@ -673,7 +679,6 @@ ExpResult InterCodeTranslater::Exp(Node* node, Operand place)
             Exp(node->getChild(2), t1);                                 // code1
             ExpResult expResult = Exp(node->getChild(0), place);        // code2.2
             Operand leftOperand = expResult.operand;
-cout << "-----" << toString(leftOperand) << toString(t1) << endl;
             InterCode code = new InterCode_(ASSIGN, leftOperand, t1);   // code2.1
             interCodeList.insert(--interCodeList.end(), code);          // insert code2.1 before code2.2      
             return expResult;
@@ -692,14 +697,14 @@ cout << "-----" << toString(leftOperand) << toString(t1) << endl;
             Operand label2 = new Operand_(LABEL);
             InterCode code0 = new InterCode_(ASSIGN, place, new Operand_(CONSTANT, 0));     // code 0
             interCodeList.push_back(code0);
-            ExpResult expResult = translateCond(node, label1, label2);                                            // code 1
+            ExpResult expResult = translateCond(node, label1, label2);                      // code 1
             InterCode code2_1 = new InterCode_(LABEL_DEC, label1);                          // code 2.1
             InterCode code2_2 = new InterCode_(ASSIGN, place, new Operand_(CONSTANT, 1));   // code 2.2
             InterCode code3 = new InterCode_(LABEL_DEC, label2);                            // code 3
             interCodeList.push_back(code2_1);
             interCodeList.push_back(code2_2);
             interCodeList.push_back(code3);
-            return makeExpResult(expResult.type, place);
+            return makeExpResult(expResult.type, place, false);
         }
         case 4:
         {
@@ -710,7 +715,7 @@ cout << "-----" << toString(leftOperand) << toString(t1) << endl;
             Exp(node->getChild(2), t2);                             // code2
             InterCode code = new InterCode_(ADD, place, t1, t2);    // code3
             interCodeList.push_back(code);
-            return makeExpResult(expResult.type, place);
+            return makeExpResult(expResult.type, place, false);
         }
         case 5:
         {
@@ -721,7 +726,7 @@ cout << "-----" << toString(leftOperand) << toString(t1) << endl;
             Exp(node->getChild(2), t2);                             // code2
             InterCode code = new InterCode_(SUB, place, t1, t2);    // code3
             interCodeList.push_back(code);
-            return makeExpResult(expResult.type, place);
+            return makeExpResult(expResult.type, place, false);
         }
         case 6:
         {
@@ -732,7 +737,7 @@ cout << "-----" << toString(leftOperand) << toString(t1) << endl;
             Exp(node->getChild(2), t2);                             // code2
             InterCode code = new InterCode_(MUL, place, t1, t2);    // code3
             interCodeList.push_back(code);
-            return makeExpResult(expResult.type, place);
+            return makeExpResult(expResult.type, place, false);
         }
         case 7:
         {
@@ -743,13 +748,13 @@ cout << "-----" << toString(leftOperand) << toString(t1) << endl;
             Exp(node->getChild(2), t2);                             // code2
             InterCode code = new InterCode_(DIV, place, t1, t2);    // code3
             interCodeList.push_back(code);
-            return makeExpResult(expResult.type, place);
+            return makeExpResult(expResult.type, place, false);
         }
         case 8:
         {
             //Exp -> LP Exp RP
             ExpResult expResult = Exp(node->getChild(1), place);
-            return makeExpResult(expResult.type, expResult.operand);
+            return makeExpResult(expResult.type, expResult.operand, false);
         }
         case 9:
         {
@@ -758,7 +763,7 @@ cout << "-----" << toString(leftOperand) << toString(t1) << endl;
             ExpResult expResult = Exp(node->getChild(1), t1);                           // code 1
             InterCode code = new InterCode_(SUB, place, new Operand_(CONSTANT, 0), t1); // code 2
             interCodeList.push_back(code);
-            return makeExpResult(expResult.type, place);
+            return makeExpResult(expResult.type, place, false);
         }
         case 11:
         {
@@ -770,21 +775,20 @@ cout << "-----" << toString(leftOperand) << toString(t1) << endl;
             {
                 InterCode code1_1 = new InterCode_(WRITE, *(--arg_list.end()));     // code 1.1 - [WRITE args[0]]
                 interCodeList.push_back(code1_1);
-                return makeExpResult(NULL, place);
+                return makeExpResult(NULL, place, false);
             }
             else
             {
                 list<Operand>::iterator it;
                 for(it = arg_list.begin(); it != arg_list.end(); ++it)
                 {
-cout << "----" << toString(*it) << endl;
                     InterCode code2 = new InterCode_(ARG, *it);                     // code 2 - [ARG args[i]]
                     interCodeList.push_back(code2);
                 }
                 IRFunction function = new IRFunction_(functionName);
                 InterCode code2_1 = new InterCode_(ASSIGN_CALL, place, function);   // code 2.1 - [place := CALL f]
                 interCodeList.push_back(code2_1);
-                return makeExpResult(symbolTable->getItemByName(functionName)->type, place);
+                return makeExpResult(symbolTable->getItemByName(functionName)->type, place, false);
             }
         }
         case 12:
@@ -795,50 +799,66 @@ cout << "----" << toString(*it) << endl;
             {
                 InterCode code = new InterCode_(READ, place);                   // code - [READ place]
                 interCodeList.push_back(code);
-                return makeExpResult(NULL, place);
+                return makeExpResult(NULL, place, false);
             } 
             else 
             {
                 IRFunction function = new IRFunction_(functionName);
                 InterCode code = new InterCode_(ASSIGN_CALL, place, function);  // code - [place := CALL f]
                 interCodeList.push_back(code);
-                return makeExpResult(symbolTable->getItemByName(functionName)->type, place);
+                return makeExpResult(symbolTable->getItemByName(functionName)->type, place, false);
             }
         }
         case 13:
         {
             //Exp -> Exp LB Exp RB
             ExpResult expResult = Exp(node->getChild(0), NULL);
-            Operand baseAddr = new Operand_(ADDRESS, expResult.operand);
-            int size = sizeOfType(expResult.type);
+            
+            Operand baseAddr;
+            if(expResult.isPointer || node->getChild(0)->getProductionNo() == 13){
+                // if exp1 is of case 13, which means it returns a derefer of an address within an array
+                // parse the addr of it and set baseAddr
+                baseAddr = expResult.operand;
+                if(baseAddr->kind == DEREFER) {
+                    baseAddr = baseAddr->u.operand;                                         // t3 := baseAddr
+                }
+            } else {
+                baseAddr = new Operand_(ADDRESS, expResult.operand);                         // t3 := &baseAddr
+            }                    
+            int size = sizeOfType(expResult.type->u.array.elem);
             Operand t1 = new Operand_(TMP);
             Operand t2 = new Operand_(TMP);
             Operand t3 = new Operand_(TMP);
             Exp(node->getChild(2), t1).operand;                                             // code - t1 := e2
             InterCode code1 = new InterCode_(MUL, t2, t1, new Operand_(CONSTANT, size));    // code - t2 := t1 * e2
             InterCode code2 = new InterCode_(ASSIGN, t3, baseAddr);                         // code - t3 := &baseAddr
+                                                                                            // or     t3 := baseAddr
             InterCode code3 = new InterCode_(ADD, t3, t3, t2);                              // code - t3 := t3 + t2
             InterCode code4 = new InterCode_(ASSIGN, place, new Operand_(DEREFER, t3));     // code - place := *t3
             interCodeList.push_back(code1);
             interCodeList.push_back(code2);
             interCodeList.push_back(code3);
             interCodeList.push_back(code4);
-            return makeExpResult(expResult.type, t3);
+            Type type = (expResult.type->kind == ARRAY) ? (expResult.type->u.array.elem) : (expResult.type);
+            return makeExpResult(type, new Operand_(DEREFER, t3), false);
         }
         case 14:
         {
             //Exp -> Exp DOT ID
-            Operand t1 = new Operand_(TMP);
+            // Operand t1 = new Operand_(TMP);
             Operand t2 = new Operand_(TMP);
             Operand t3 = new Operand_(TMP);
-            ExpResult expResult = Exp(node->getChild(0), t1);                           // code - t1 := e
-            InterCode code1 = new InterCode_(ASSIGN, t2, new Operand_(ADDRESS, t1));    // code1 - t2 := &t1
+            // ExpResult expResult = Exp(node->getChild(0), t1);                        
+            ExpResult expResult = Exp(node->getChild(0), NULL);
+            InterCode code1 = expResult.isPointer ? 
+                        new InterCode_(ASSIGN, t2, expResult.operand) :                         // code1 - t2 := e
+                        new InterCode_(ASSIGN, t2, new Operand_(ADDRESS, expResult.operand));   // or    - t2 := &e 
             interCodeList.push_back(code1);
 
             // search for ID in this struct
             string IDName = node->getChild(2)->getText();
             FieldList itr = expResult.type->u.structure->structureFieldList;
-            int offset;
+            int offset = 0;
             Type elemType = NULL;
             while(itr)
             {
@@ -857,7 +877,7 @@ cout << "----" << toString(*it) << endl;
                                 place, new Operand_(DEREFER, t3));          // code3 - place := *t3
             interCodeList.push_back(code3);
 
-            return makeExpResult(elemType, t3);
+            return makeExpResult(elemType, new Operand_(DEREFER, t3), false);
         }
         case 15:
         {
@@ -866,7 +886,7 @@ cout << "----" << toString(*it) << endl;
             Operand right = new Operand_(VARIABLE, IDItem);
             InterCode code = new InterCode_(ASSIGN, place, right); // code - [place := variable.name]
             interCodeList.push_back(code);
-            return makeExpResult(IDItem->type, right);
+            return makeExpResult(IDItem->type, right, IDItem->isPointer);
         }
         case 16:
         {    
@@ -878,7 +898,7 @@ cout << "----" << toString(*it) << endl;
             type->kind = BASIC;
             type->u.basic = INT;
             type->assignType = RIGHT;
-            return makeExpResult(type, right);
+            return makeExpResult(type, right, false);
         }
         case 17:
         {
@@ -889,7 +909,7 @@ cout << "----" << toString(*it) << endl;
             type->kind = BASIC;
             type->u.basic = FLOAT;
             type->assignType = RIGHT;
-            return makeExpResult(type, place);
+            return makeExpResult(type, place, false);
         }
     }
 }
@@ -900,7 +920,6 @@ void InterCodeTranslater::Args(Node* node, list<Operand>& arg_list)
 	//Exp
     Operand t1 = new Operand_(TMP);
     Exp(node->getChild(0), t1);             // code 1
-cout << "-----push arg" << endl;
     arg_list.push_front(t1);
     if(node->getProductionNo() == 0)
     {

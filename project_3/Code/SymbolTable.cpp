@@ -103,11 +103,23 @@ void SymbolTable::addFieldList(FieldList fieldList)
     item->name = fieldList->name;
     item->type = fieldList->type;
     item->next = NULL;
+    item->isPointer = false;
+    this->addItem(item);
+}
+
+void SymbolTable::addFieldList(FieldList fieldList, bool isPointer)
+{
+    TableItem *item = new TableItem();
+    item->name = fieldList->name;
+    item->type = fieldList->type;
+    item->next = NULL;
+    item->isPointer = isPointer;
     this->addItem(item);
 }
 
 /*
  * Add a structure to the table.
+ * Note: This func adds the definition of some struct. To add an var with struct type, use addFieldList instead.
  * Return a Type so there's no need to new a type elsewhere, 
  *  to make sure there's no Type_ or Structure_ that doesn't keep a pointer in this table.
  */
@@ -120,6 +132,7 @@ Type SymbolTable::addStructureAndGetType(Structure structure)
     item->type->u.structure = structure;
     item->type->assignType = LEFT;
     item->next = NULL;
+    item->isPointer = false;
     this->addItem(item);
     return item->type;
 }
@@ -136,6 +149,7 @@ Type SymbolTable::addFunctionAndGetType(Function function)
     item->type->u.function = function;
     item->type->assignType = RIGHT;
     item->next = NULL;
+    item->isPointer = false;
     this->addItem(item);
     return item->type;
 }

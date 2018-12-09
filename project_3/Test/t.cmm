@@ -1,10 +1,14 @@
-int fun()
+int add(int temp[2], int n)
 {
-    int x = 1;
+	return (temp[0] +temp[1]);
 }
 int main()
 {
-    int a = 0;
-    return a;
+    int r[2];
+    int a;
+    r[0] = 1;
+    r[1] = 2;
+    a = add(r, a);
+    write(a);
+    return 0;
 }
-int fun();
