@@ -31,7 +31,7 @@ syntax-c: $(YFILE)
 -include $(patsubst %.o, %.d, $(OBJS))
 
 # 定义的一些伪目标
-.PHONY: clean test
+.PHONY: debug clean test
 test:
 	for name in $(TESTFILES); \
 		do \
@@ -44,3 +44,5 @@ clean:
 	rm -f $(OBJS) $(OBJS:.o=.d)
 	rm -f $(LFC) $(YFC) $(YFC:.c=.h)
 	rm -f *~
+debug: syntax $(CFILES)
+	$(CC) -g $(CPPFILES) $(CFILES) -lfl -ly -o ./parser
