@@ -298,6 +298,7 @@ string InterCodeTranslater::toString(InterCode interCode)
 /************************* End of Tool Functions ***********************/
 /*************************** Semantic Actions **************************/
 
+// TODO: improve efficiency
 /* High-level Definitions */
 void InterCodeTranslater::Program(Node* node)
 {
