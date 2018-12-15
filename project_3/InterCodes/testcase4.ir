@@ -43,7 +43,7 @@ t20 := t21 + t22
 j := t20
 GOTO label4
 LABEL label6 : 
-t24 := op
+t24 := &op
 ARG t24
 t23 := CALL add
 t25 := #0

@@ -6,6 +6,6 @@
 
 using namespace std;
 
-#define DEBUG
+// #define DEBUG
 
 #endif

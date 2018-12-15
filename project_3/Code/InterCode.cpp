@@ -214,7 +214,6 @@ string InterCodeTranslater::toString(Operand operand)
         return "null operand";
     }
 
-// cout << "operand" << operand->kind << endl;
     switch(operand->kind)
     {
         case VARIABLE:
@@ -226,9 +225,23 @@ string InterCodeTranslater::toString(Operand operand)
         case LABEL:
             return "label" + to_string(operand->u.label_no);
         case ADDRESS:
-            return "&" + toString(operand->u.operand);
+        {
+            if(operand->u.operand->kind == DEREFER) {
+                // &*t -> t
+                return toString(operand->u.operand->u.operand);
+            } else {
+                return "&" + toString(operand->u.operand);
+            }
+        }
         case DEREFER:
-            return "*" + toString(operand->u.operand);
+        {
+            if(operand->u.operand->kind == ADDRESS) {
+                // *&t -> t
+                return toString(operand->u.operand->u.operand);
+            } else {
+                return "*" + toString(operand->u.operand);
+            }
+        }
         default:
             return "unrecognized operand";
     }
@@ -399,11 +412,8 @@ void InterCodeTranslater::VarDec(Node* node)
             //VarDec -> ID
             string name = node->getChild(0)->getText();
             TableItem *varItem = symbolTable->getItemByName(name);
-cout << "-----402" << endl;
             if(varItem != NULL && (varItem->type->kind == ARRAY || varItem->type->kind == STRUCTURE))
             {
-
-cout << "-----" << varItem->name << sizeOfType(varItem->type) << endl;
                 InterCode code = new InterCode_(DEC, 
                                         varItem, sizeOfType(varItem->type)); // code - DEC x [size]
                 interCodeList.push_back(code);
@@ -919,7 +929,13 @@ void InterCodeTranslater::Args(Node* node, list<Operand>& arg_list)
 	showInfo(node);
 	//Exp
     Operand t1 = new Operand_(TMP);
-    Exp(node->getChild(0), t1);             // code 1
+    ExpResult e = Exp(node->getChild(0), t1);                                   // code 1 - t1 := e      
+    InterCode code;
+    if(e.type->kind == ARRAY) {
+        code = new InterCode_(ASSIGN, t1, new Operand_(ADDRESS, e.operand));    // code 1 - t1 := &array
+        interCodeList.pop_back();
+        interCodeList.push_back(code);
+    }
     arg_list.push_front(t1);
     if(node->getProductionNo() == 0)
     {

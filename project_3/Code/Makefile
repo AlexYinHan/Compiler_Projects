@@ -37,7 +37,8 @@ test:
 		do \
 			echo ; \
 			echo $$name; \
-			./parser $$name; \
+			sname=$${name##*/}; \
+			./parser $$name "../InterCodes/"$${sname%.*}.ir; \
 		done 
 clean:
 	rm -f parser lex.yy.c syntax.tab.c syntax.tab.h syntax.output

@@ -1,0 +1,37 @@
+struct Operand
+{
+	int o1;
+    int o2[2][2];
+};
+
+int max(int a[2][2])
+{
+    int i = 0, j = 0, result = a[0][0];
+    while(i < 2)
+    {
+        j = 0;
+        while(j < 2)
+        {
+            if(a[i][j] > result)
+            {
+                result = a[i][j];
+            }
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+    return result;
+}
+
+int main()
+{
+    struct Operand s;
+    int x;
+    s.o2[0][0] = 1;
+    s.o2[0][1] = 2;
+    s.o2[1][0] = 3;
+    s.o2[1][1] = 4;
+    x = max(s.o2);
+    write(x);
+    return 0;
+}
