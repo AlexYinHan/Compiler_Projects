@@ -1,0 +1,14 @@
+int add(int temp[2], int n)
+{
+	return (temp[0] +temp[1]);
+}
+int main()
+{
+    int r[2];
+    int a;
+    r[0] = 1;
+    r[1] = 2;
+    a = add(r, a);
+    write(a);
+    return 0;
+}

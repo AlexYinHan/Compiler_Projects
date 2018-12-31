@@ -1,0 +1,125 @@
+FUNCTION max :
+PARAM a
+i := #0
+j := #0
+t1 := #0
+t2 := t1 * #8
+t3 := a
+t3 := t3 + t2
+t4 := #0
+t5 := t4 * #4
+t6 := t3
+t6 := t6 + t5
+result := *t6
+LABEL label1 : 
+t7 := i
+t8 := #2
+IF t7 < t8 GOTO label2
+GOTO label3
+LABEL label2 : 
+t9 := #0
+j := t9
+LABEL label4 : 
+t10 := j
+t11 := #2
+IF t10 < t11 GOTO label5
+GOTO label6
+LABEL label5 : 
+t14 := i
+t15 := t14 * #8
+t16 := a
+t16 := t16 + t15
+t17 := j
+t18 := t17 * #4
+t19 := t16
+t19 := t19 + t18
+t12 := *t19
+t13 := result
+IF t12 > t13 GOTO label7
+GOTO label8
+LABEL label7 : 
+t21 := i
+t22 := t21 * #8
+t23 := a
+t23 := t23 + t22
+t24 := j
+t25 := t24 * #4
+t26 := t23
+t26 := t26 + t25
+t20 := *t26
+result := t20
+LABEL label8 : 
+t28 := j
+t29 := #1
+t27 := t28 + t29
+j := t27
+GOTO label4
+LABEL label6 : 
+t31 := i
+t32 := #1
+t30 := t31 + t32
+i := t30
+GOTO label1
+LABEL label3 : 
+t33 := result
+RETURN t33
+FUNCTION main :
+DEC s 20
+t34 := #1
+t35 := &s
+t36 := t35 + #4
+t37 := #0
+t38 := t37 * #8
+t39 := t36
+t39 := t39 + t38
+t40 := #0
+t41 := t40 * #4
+t42 := t39
+t42 := t42 + t41
+*t42 := t34
+t43 := #2
+t44 := &s
+t45 := t44 + #4
+t46 := #0
+t47 := t46 * #8
+t48 := t45
+t48 := t48 + t47
+t49 := #1
+t50 := t49 * #4
+t51 := t48
+t51 := t51 + t50
+*t51 := t43
+t52 := #3
+t53 := &s
+t54 := t53 + #4
+t55 := #1
+t56 := t55 * #8
+t57 := t54
+t57 := t57 + t56
+t58 := #0
+t59 := t58 * #4
+t60 := t57
+t60 := t60 + t59
+*t60 := t52
+t61 := #4
+t62 := &s
+t63 := t62 + #4
+t64 := #1
+t65 := t64 * #8
+t66 := t63
+t66 := t66 + t65
+t67 := #1
+t68 := t67 * #4
+t69 := t66
+t69 := t69 + t68
+*t69 := t61
+t72 := &s
+t73 := t72 + #4
+t71 := t73
+ARG t71
+t70 := CALL max
+x := t70
+t74 := x
+WRITE t74
+t75 := #0
+RETURN t75
