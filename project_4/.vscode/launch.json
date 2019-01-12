@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceRoot}/Code/parser",
-            "args": ["Test/mulparam.cmm"],
+            "args": ["Test/testcase3.cmm"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

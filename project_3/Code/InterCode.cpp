@@ -932,8 +932,8 @@ void InterCodeTranslater::Args(Node* node, list<Operand>& arg_list)
     Operand t1 = new Operand_(TMP);
     ExpResult e = Exp(node->getChild(0), t1);                                   // code 1 - t1 := e      
     InterCode code;
-    if(e.type->kind == ARRAY) {
-        code = new InterCode_(ASSIGN, t1, new Operand_(ADDRESS, e.operand));    // code 1 - t1 := &array
+    if(e.type->kind == ARRAY || e.type->kind == STRUCTURE) {
+        code = new InterCode_(ASSIGN, t1, new Operand_(ADDRESS, e.operand));    // code 1 - t1 := &a
         interCodeList.pop_back();
         interCodeList.push_back(code);
     }

@@ -169,7 +169,7 @@ int InterCodeTranslater::sizeOfType(Type type)
 
 void InterCodeTranslater::deleteInvalidCodes()
 {
-    //delete codes with null operands
+    // delete codes with null operands
     list<InterCode>::iterator it;
     for(it = interCodeList.begin(); it != interCodeList.end();)
     {
@@ -207,6 +207,7 @@ void InterCodeTranslater::deleteInvalidCodes()
     }
 }
 
+/************************* End of Tool Functions ***********************/
 string InterCodeTranslater::toString(Operand operand)
 {
     if(operand == NULL)
@@ -295,7 +296,6 @@ string InterCodeTranslater::toString(InterCode interCode)
         default: return "unrecognized code";
     }
 }
-/************************* End of Tool Functions ***********************/
 /*************************** Semantic Actions **************************/
 
 // TODO: improve efficiency
@@ -932,8 +932,8 @@ void InterCodeTranslater::Args(Node* node, list<Operand>& arg_list)
     Operand t1 = new Operand_(TMP);
     ExpResult e = Exp(node->getChild(0), t1);                                   // code 1 - t1 := e      
     InterCode code;
-    if(e.type->kind == ARRAY) {
-        code = new InterCode_(ASSIGN, t1, new Operand_(ADDRESS, e.operand));    // code 1 - t1 := &array
+    if(e.type->kind == ARRAY || e.type->kind == STRUCTURE) {
+        code = new InterCode_(ASSIGN, t1, new Operand_(ADDRESS, e.operand));    // code 1 - t1 := &a
         interCodeList.pop_back();
         interCodeList.push_back(code);
     }

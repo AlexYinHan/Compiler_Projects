@@ -18,7 +18,7 @@ t11 := #2
 t12 := &op
 t13 := t12 + #4
 *t13 := t11
-t15 := op
+t15 := &op
 ARG t15
 t14 := CALL add
 n := t14

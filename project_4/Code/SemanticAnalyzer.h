@@ -4,7 +4,6 @@
 #include "common.h"
 #include "SyntaxTree.h"
 #include "SymbolTable.h"
-#include "InterCode.h"
 
 
 enum AddFunctionResult  {   NEW_DEC_ADDED, NEW_DEF_ADDED, DIFFERENT_KIND, REDEFINED, 
@@ -18,7 +17,6 @@ private:
     SemanticErrorFlag semanticErrorFlag;
     SymbolTable symbolTable;
     const Type errorType = new Type_();
-    list<InterCode> interCodeList;
 
     /**************************** Tool Functions ***************************/
     string toString(FieldList fieldList);

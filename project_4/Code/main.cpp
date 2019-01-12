@@ -1,6 +1,8 @@
 #include "common.h"
 #include "parseCommon.h"
 #include "SemanticAnalyzer.h"
+#include "InterCode.h"
+#include "MIPS.h"
 
 Node* treeRoot = NULL;
 SyntaxErrorFlag syntaxErrorFlag = NO_SYNTAX_ERROR;
@@ -34,13 +36,17 @@ int main(int argc, char** argv) {
 		{
 			InterCodeTranslater IRT(semanticAnalyzer.getSymbolTable());
 			IRT.translate(treeRoot);
+			MIPS32Translater MT;
+			MT.translate(IRT.getInterCodeList());
 			if(argc >= 3)
 			{
-				IRT.output(argv[2]);
+				// IRT.output(argv[2]);
+				MT.output(argv[2]);
 			}
 			else
 			{
-				IRT.output();
+				// IRT.output();
+				MT.output();
 			}
 		}
 	}

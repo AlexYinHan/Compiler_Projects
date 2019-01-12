@@ -118,8 +118,6 @@ private:
         r.isPointer = isPointer;
         return r;
     }
-    string toString(Operand operand);
-    string toString(InterCode interCode);
     /************************* End of Tool Functions ***********************/
 
 public:
@@ -129,6 +127,11 @@ public:
     void translate(Node* treeRoot);
     void output();
     void output(string filename);
+    list<InterCode> getInterCodeList() {
+        return this->interCodeList;
+    }
+    static string toString(Operand operand);
+    static string toString(InterCode interCode);
 
     /*************************** Semantic Actions **************************/
 
