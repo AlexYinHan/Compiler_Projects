@@ -266,7 +266,8 @@ void MIPS32Translater::translate_param(InterCode interCode)
         // on stack
         Var* var = new Var(varName, 4 * (curParamIndex - 3), -1);
         memManager.varList.push_back((*var));
-    } 
+    }
+    curParamIndex ++;
 }
 void MIPS32Translater::translate_return(InterCode interCode)
 {
@@ -287,6 +288,7 @@ void MIPS32Translater::translate_arg(InterCode interCode)
     // save args to regs or stack
     Operand op = interCode->u.sinop.op;
     string code = "";
+    int curArgIndex = interCode->u.arg.argIndex;
     if(curArgIndex <= 3)
     {
         // in reg $a0-$a3 (4-7)
@@ -301,7 +303,7 @@ void MIPS32Translater::translate_arg(InterCode interCode)
         code = (op->kind == CONSTANT) ? 
                 "li $v1, " + to_string(op->u.int_const) :
                 "move $v1, " + getRegName(getRegID(op)); // to make it simple, move to $v1 first
-        // memManager.spOffSet -= 4;
+        memManager.spOffSet -= 4;
         list<string> codes = {
             code,
             // "addi $sp, $fp, " + to_string(memManager.spOffSet),
@@ -309,7 +311,7 @@ void MIPS32Translater::translate_arg(InterCode interCode)
         };
         codeList.splice(codeList.end(), codes);
     }
-    curArgIndex ++;
+    // curArgIndex ++;
 }
 
 void MIPS32Translater::translate_read(InterCode interCode)
@@ -401,7 +403,7 @@ void MIPS32Translater::translate_assignCall(InterCode interCode)
         codeList.push_back("move " + getRegName(var.regId) + ", $v0");
         codeList.push_back("sw $v0, " + to_string(var.offset) + "($fp)");
     }
-    curArgIndex = 0;
+    // curArgIndex = 0;
 }
 void MIPS32Translater::translate_labelDec(InterCode interCode)
 {

@@ -84,6 +84,12 @@ InterCode_::InterCode_(InterCodeKind kind, IRCondGoto condGoto)
     this->kind = kind;
     this->u.condGoto = condGoto;
 }
+InterCode_::InterCode_(InterCodeKind kind, Operand argOp, int argIndex)
+{
+    this->kind = kind;
+    this->u.arg.argOp = argOp;
+    this->u.arg.argIndex = argIndex;
+}
 InterCode_::InterCode_(InterCodeKind kind, Operand result, IRFunction function)
 {
     this->kind = kind;
@@ -257,7 +263,7 @@ string InterCodeTranslater::toString(InterCode interCode)
         case RETURN:
             return "RETURN " + toString(interCode->u.sinop.op);
         case ARG:
-            return "ARG " + toString(interCode->u.sinop.op);
+            return "ARG " + toString(interCode->u.arg.argOp);
         case READ:
             return "READ " + toString(interCode->u.sinop.op);
         case WRITE:
@@ -344,7 +350,8 @@ void InterCodeTranslater::ExtDef(Node* node)
             // ExtDef -> Specifier FunDec CompSt
             Function function = FunDec(node->getChild(1));
 
-            InterCode code = new InterCode_(FUNC_DEF, new IRFunction_(function->name));         // code - FUNCTION f :
+            // actuall paramNum only needed when called, not defined, simply set it to 0 here
+            InterCode code = new InterCode_(FUNC_DEF, new IRFunction_(function->name, 0));      // code - FUNCTION f :
             interCodeList.push_back(code);
             FieldList param = function->params;
             while(param)
@@ -791,12 +798,14 @@ ExpResult InterCodeTranslater::Exp(Node* node, Operand place)
             else
             {
                 list<Operand>::iterator it;
+                int argIndex = arg_list.size() - 1;
                 for(it = arg_list.begin(); it != arg_list.end(); ++it)
                 {
-                    InterCode code2 = new InterCode_(ARG, *it);                     // code 2 - [ARG args[i]]
+                    InterCode code2 = new InterCode_(ARG, *it, argIndex);           // code 2 - [ARG args[i]]
                     interCodeList.push_back(code2);
+                    argIndex --;
                 }
-                IRFunction function = new IRFunction_(functionName);
+                IRFunction function = new IRFunction_(functionName, arg_list.size());
                 InterCode code2_1 = new InterCode_(ASSIGN_CALL, place, function);   // code 2.1 - [place := CALL f]
                 interCodeList.push_back(code2_1);
                 return makeExpResult(symbolTable->getItemByName(functionName)->type, place, false);
@@ -814,7 +823,7 @@ ExpResult InterCodeTranslater::Exp(Node* node, Operand place)
             } 
             else 
             {
-                IRFunction function = new IRFunction_(functionName);
+                IRFunction function = new IRFunction_(functionName, 0);
                 InterCode code = new InterCode_(ASSIGN_CALL, place, function);  // code - [place := CALL f]
                 interCodeList.push_back(code);
                 return makeExpResult(symbolTable->getItemByName(functionName)->type, place, false);

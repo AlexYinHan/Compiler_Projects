@@ -110,9 +110,9 @@ sw $t5, -88($fp)
 move $t6, $t7
 sw $t6, -92($fp)
 lw $t0, -92($fp)
-move $a0, $t0
+move $a1, $t0
 lw $t1, -88($fp)
-move $a1, $t1
+move $a0, $t1
 sw $ra, -100($fp)
 sw $fp, -104($fp)
 sw $t0, -108($fp)

@@ -39,8 +39,6 @@ struct AllocateRegResult
 };
 class MemManager
 {
-private:
-    int a= 0; 
 public:
     int spOffSet = -4; // sp's offset to fp, init in func_def
     vector<Var> varList;
@@ -77,7 +75,7 @@ private:
 
     /* indicate the index of current param/arg when parsing*/
     int curParamIndex = 0;  // inc in translate_param, zero in func_def
-    int curArgIndex= 0;     // inc in translate_arg, zero in call/assign_call
+    // int curArgIndex= 0;     // inc in translate_arg, zero in call/assign_call
 
     Operand getSimplifiedOperand(Operand operand);
     void translateInterCodes(list<InterCode> interCodeList);

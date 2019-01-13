@@ -44,23 +44,25 @@ struct InterCode_
     InterCodeKind kind;
     union
     {
-        struct {Operand op;} sinop;                        // PARAM, RETURN, ARG, READ, WRITE, LABEL_DEC, GOTO
+        struct {Operand op;} sinop;                        // PARAM, RETURN, READ, WRITE, LABEL_DEC, GOTO
         struct {Operand left, right;} assign;                       // ASSIGN
         struct {Operand result, op1, op2;} binop;                   // ADD, SUB, MUL, DIV
         struct {TableItem* tableItem_p; int size;} dec;             // DEC
         struct {Operand result; IRFunction function;} assign_call;  // ASSIGN_CALL
+        struct {Operand argOp; int argIndex;} arg;                  // ARG
         IRCondGoto condGoto;                                        // COND_GOTO
         IRFunction function;                                        // FUNC_DEF
     } u;
 
     // Constructors
     InterCode_(InterCodeKind kind, Operand op);
-    InterCode_(InterCodeKind kind, Operand right, Operand left);
+    InterCode_(InterCodeKind kind, Operand left, Operand right);
     InterCode_(InterCodeKind kind, Operand result, Operand op1, Operand op2);
     InterCode_(InterCodeKind kind, TableItem* tableItem_p, int size);
-    InterCode_(InterCodeKind kind, IRFunction function);
-    InterCode_(InterCodeKind kind, IRCondGoto condGoto);
     InterCode_(InterCodeKind kind, Operand result, IRFunction function);
+    InterCode_(InterCodeKind kind, Operand argOp, int argIndex);
+    InterCode_(InterCodeKind kind, IRCondGoto condGoto);
+    InterCode_(InterCodeKind kind, IRFunction function);
 
     // InterCode pre, next;
 };
@@ -82,9 +84,11 @@ struct IRCondGoto_
 struct IRFunction_
 {
     string name;
-    IRFunction_(string name)
+    int paramNum;
+    IRFunction_(string name, int paramNum)
     {
         this->name = name;
+        this->paramNum = paramNum;
     }
 };
 
